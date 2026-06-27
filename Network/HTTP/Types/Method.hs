@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -- | Types and constants for HTTP methods.
 --
@@ -32,11 +33,9 @@ module Network.HTTP.Types.Method (
 )
 where
 
-import Control.Arrow ((|||))
-import Data.Array (Array, Ix, assocs, listArray, (!))
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as B8
 import Data.Data (Data)
+import Data.Ix (Ix)
 import GHC.Generics (Generic)
 
 -- $setup
@@ -123,13 +122,8 @@ data StdMethod
 -- The reason is that methodList is used with lookup.
 -- lookup is probably faster for these few cases than setting up an elaborate data structure.
 
--- FIXME: listArray (minBound, maxBound) $ fmap fst methodList
-methodArray :: Array StdMethod Method
-methodArray = listArray (minBound, maxBound) $ map (B8.pack . show) [minBound :: StdMethod .. maxBound]
-
--- FIXME: map (\m -> (B8.pack $ show m, m)) [minBound .. maxBound]
 methodList :: [(Method, StdMethod)]
-methodList = map (\(a, b) -> (b, a)) (assocs methodArray)
+methodList = map (\m -> (renderStdMethod m, m)) [minBound .. maxBound]
 
 -- | Convert a method 'B.ByteString' to a 'StdMethod' if possible.
 --
@@ -143,10 +137,20 @@ parseMethod bs = maybe (Left bs) Right $ lookup bs methodList
 --
 -- @since 0.3.0
 renderMethod :: Either B.ByteString StdMethod -> Method
-renderMethod = id ||| renderStdMethod
+renderMethod = either id renderStdMethod
 
 -- | Convert a 'StdMethod' to a 'B.ByteString'.
 --
 -- @since 0.2.0
 renderStdMethod :: StdMethod -> Method
-renderStdMethod m = methodArray ! m
+renderStdMethod method =
+    case method of
+        GET -> "GET"
+        POST -> "POST"
+        HEAD -> "HEAD"
+        PUT -> "PUT"
+        DELETE -> "DELETE"
+        TRACE -> "TRACE"
+        CONNECT -> "CONNECT"
+        OPTIONS -> "OPTIONS"
+        PATCH -> "PATCH"
