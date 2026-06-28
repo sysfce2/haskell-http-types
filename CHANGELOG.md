@@ -1,5 +1,9 @@
 # Changelog for `http-types`
 
+## 0.12.6 [unreleased]
+
+* Remove `array` dependency
+
 ## 0.12.5 [2026-05-31]
 
 * Add status `451 Unavailable For Legal Reasons`
