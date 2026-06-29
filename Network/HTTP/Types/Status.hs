@@ -62,11 +62,16 @@ module Network.HTTP.Types.Status (
     statusCode,
     statusMessage,
     mkStatus,
+
+    -- ** Parsing and Rendering
+    parseStatusCode,
     renderStatusCode,
+    parseFullStatus,
     renderFullStatus,
 
     -- ** Low level functions
     renderStatusCodeToPtr,
+    renderFullStatusToPtr,
 
     -- * Common statuses
     status100,
@@ -176,13 +181,19 @@ module Network.HTTP.Types.Status (
     statusIsServerError,
 ) where
 
-import Data.Bits ((.|.))
-import Data.ByteString as B (ByteString, empty, length)
+import Control.Monad (guard)
+import Data.Bits ((.&.), (.|.))
+import Data.ByteString as B (ByteString, drop, empty, length, uncons)
 import qualified Data.ByteString.Char8 as B8
-import Data.ByteString.Internal as B (ByteString (..), unsafeCreate, unsafeWithForeignPtr)
+import Data.ByteString.Internal as B (
+    ByteString (..),
+    accursedUnutterablePerformIO,
+    unsafeCreate,
+    unsafeWithForeignPtr,
+ )
 import Data.Data (Data)
 import Data.Function (on)
-import Foreign (Ptr, Word8, copyBytes, plusPtr, poke)
+import Foreign (Ptr, Word8, copyBytes, peek, plusPtr, poke)
 import GHC.Generics (Generic)
 
 -- | HTTP Status.
@@ -1095,7 +1106,7 @@ renderStatusCode s@(Status code _)
 
 -- | Writes the full t'Status' code to the provided 'Ptr'.
 --
--- /N.B. Same caveat as with 'renderStatusCodeToPtr'./
+-- /N.B. Same caveat from 'renderStatusCodeToPtr' applies./
 --
 -- @since 0.12.6
 renderFullStatusToPtr :: Status -> Ptr Word8 -> IO ()
@@ -1116,3 +1127,76 @@ renderFullStatus s@(Status code msg)
         unsafeCreate (4 + len) $ renderFullStatusToPtr s
   where
     len = B.length msg
+
+-- | Parses the first three characters as digits and converts them to an 'Int'.
+--
+-- If the first 3 characters are not digits (i.e. @0-9@), or the 'ByteString'
+-- is less than 3 bytes long, the result will be 'Nothing'.
+--
+-- When successful, it will return the parsed status code and the remainder of
+-- the 'ByteString'.
+--
+-- >>> parseStatusCode "307"
+-- Just (307,"")
+--
+-- >>> parseStatusCode "404 Not Found"
+-- Just (404," Not Found")
+--
+-- >>> parseStatusCode "No Digits"
+-- Nothing
+--
+-- >>> parseStatusCode "12 Is Not Enough Digits"
+-- Nothing
+parseStatusCode :: ByteString -> Maybe (Int, ByteString)
+parseStatusCode bs@(BS fptr len)
+    | len < 3 = Nothing
+    | otherwise =
+        accursedUnutterablePerformIO $
+            unsafeWithForeignPtr fptr $ \ptr -> do
+                w1 <- peek ptr
+                w2 <- peek (ptr `plusPtr` 1)
+                w3 <- peek (ptr `plusPtr` 2)
+                pure $ do
+                    h <- toNumber w1
+                    t <- toNumber w2
+                    i <- toNumber w3
+                    Just (h * 100 + t * 10 + i, B.drop 3 bs)
+  where
+    toNumber :: Word8 -> Maybe Int
+    toNumber w = do
+        guard $ 0x30 <= w && w <= 0x39
+        Just . fromIntegral $ w .&. 0x0F
+
+-- | Assumes the provided 'ByteString' is either:
+--
+--   * only 3 digits, or
+--   * 3 digits, a space, and the rest of the status message
+--
+-- /N.B. this function does not check for newlines, it puts everything/
+-- /after the code and space into the 'statusMessage'./
+--
+-- >>> parseFullStatus "307"
+-- Just (Status {statusCode = 307, statusMessage = ""})
+--
+-- >>> parseFullStatus "404 Not Found"
+-- Just (Status {statusCode = 404, statusMessage = "Not Found"})
+--
+-- >>> parseFullStatus "500 Someone Forgot To\r\nBreak At The Newline"
+-- Just (Status {statusCode = 500, statusMessage = "Someone Forgot To\r\nBreak At The Newline"})
+--
+-- >>> parseFullStatus "1337 Is A Bad Status Code"
+-- Nothing
+--
+-- >>> parseFullStatus "101Still Needs A Space"
+-- Nothing
+--
+-- >>> parseFullStatus "No Digits"
+-- Nothing
+parseFullStatus :: ByteString -> Maybe Status
+parseFullStatus bs = do
+    (code, rest) <- parseStatusCode bs
+    case B.uncons rest of
+        Nothing -> Just $ mkStatus code ""
+        Just (w, ws)
+            | w == 0x20 -> Just $ mkStatus code ws
+            | otherwise -> Nothing

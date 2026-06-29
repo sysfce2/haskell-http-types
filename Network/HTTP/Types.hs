@@ -36,9 +36,19 @@ module Network.HTTP.Types (
 
     -- | __For more information__: "Network.HTTP.Types.Status"
     Status (..),
+    mkStatus,
+
+    -- ** Parsing and Rendering
+    parseStatusCode,
+    renderStatusCode,
+    parseFullStatus,
+    renderFullStatus,
+
+    -- ** Low level functions
+    renderStatusCodeToPtr,
+    renderFullStatusToPtr,
 
     -- ** Constants
-    mkStatus,
     status100,
     continue100,
     status101,
@@ -137,6 +147,8 @@ module Network.HTTP.Types (
     httpVersionNotSupported505,
     status511,
     networkAuthenticationRequired511,
+
+    -- *** Category checks
     statusIsInformational,
     statusIsSuccessful,
     statusIsRedirection,
