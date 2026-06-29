@@ -247,7 +247,7 @@ import Data.Data (Data)
 import Data.Function (on)
 import Foreign (Ptr, Word8, copyBytes, peek, plusPtr, poke)
 #if !MIN_VERSION_base(4,15,0)
-import Foreign.ForeignPtr (withForeignPtr)
+import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 #else
 import GHC.ForeignPtr (unsafeWithForeignPtr)
 #endif
@@ -1181,11 +1181,11 @@ renderStatusCode s@(Status code _)
 --
 -- @since 0.12.6
 renderFullStatusToPtr :: Status -> Ptr Word8 -> IO ()
-renderFullStatusToPtr s@(Status _ (BS fptr len)) ptr = do
+renderFullStatusToPtr s@(Status _ (PS fptr offset len)) ptr = do
     renderStatusCodeToPtr s ptr
     poke (ptr `plusPtr` 3) (0x20 :: Word8)
     unsafeWithForeignPtr fptr $ \src ->
-        copyBytes (ptr `plusPtr` 4) src len
+        copyBytes (ptr `plusPtr` 4) (src `plusPtr` offset) len
 
 -- | Render the full t'Status' code with status message into a 'ByteString'.
 --
@@ -1219,11 +1219,12 @@ renderFullStatus s@(Status code msg)
 -- >>> parseStatusCode "12 Is Not Enough Digits"
 -- Nothing
 parseStatusCode :: ByteString -> Maybe (Int, ByteString)
-parseStatusCode bs@(BS fptr len)
+parseStatusCode bs@(PS fptr offset len)
     | len < 3 = Nothing
     | otherwise =
         accursedUnutterablePerformIO $
-            unsafeWithForeignPtr fptr $ \ptr -> do
+            unsafeWithForeignPtr fptr $ \ptr' -> do
+                let ptr = ptr' `plusPtr` offset
                 w1 <- peek ptr
                 w2 <- peek (ptr `plusPtr` 1)
                 w3 <- peek (ptr `plusPtr` 2)
