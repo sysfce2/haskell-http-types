@@ -84,7 +84,7 @@ module Network.HTTP.Types.URI (
 where
 
 import Control.Arrow (second, (***))
-import Data.Bits (shiftL, (.|.))
+import Data.Bits (shiftL, shiftR, (.&.), (.|.))
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Builder as B
 import qualified Data.ByteString.Lazy as BL
@@ -114,6 +114,9 @@ import Data.Word (Word8)
 type QueryItem = (B.ByteString, Maybe B.ByteString)
 
 -- | A sequence of 'QueryItem's.
+--
+-- General form: @a=b&c=d@, but if for example the value of @a@ is 'Nothing'
+-- instead of @'Just' "b"@, it becomes @a&c=d@.
 type Query = [QueryItem]
 
 -- | Like Query, but with 'Text' instead of 'B.ByteString' (UTF8-encoded).
@@ -174,21 +177,17 @@ simpleQueryToQuery = map (second Just)
 renderQueryBuilder :: Bool -> Query -> B.Builder
 renderQueryBuilder _ [] = mempty
 renderQueryBuilder qmark' (p : ps) =
-    -- FIXME: replace mconcat + map with foldr
-    mconcat $
-        go (if qmark' then qmark else mempty) p
-            : map (go amp) ps
+    mconcat $ go qmark p : map (go amp) ps
   where
-    qmark = B.byteString "?"
-    amp = B.byteString "&"
-    equal = B.byteString "="
+    qmark = if qmark' then B.word8 _question else mempty
+    amp = B.word8 _ampersand
     go sep (k, mv) =
         mconcat
             [ sep
             , urlEncodeBuilder True k
             , case mv of
                 Nothing -> mempty
-                Just v -> equal `mappend` urlEncodeBuilder True v
+                Just v -> B.word8 _equal `mappend` urlEncodeBuilder True v
             ]
 
 -- | Renders the given 'Query' into a 'B.ByteString'.
@@ -234,30 +233,29 @@ parseQueryReplacePlus replacePlus bs = parseQueryString' $ dropQuestion bs
   where
     dropQuestion q =
         case B.uncons q of
-            Just (63, q') -> q'
+            -- 0x3F == _question
+            Just (0x3F, q') -> q'
             _ -> q
     parseQueryString' q | B.null q = []
     parseQueryString' q =
         let (x, xs) = breakDiscard queryStringSeparators q
          in parsePair x : parseQueryString' xs
       where
+        queryStringSeparators :: B.ByteString
+        queryStringSeparators = "&;"
         parsePair x =
-            let (k, v) = B.break (== 61) x -- equal sign
+            let (k, v) = B.break (== _equal) x
                 v'' =
                     case B.uncons v of
                         Just (_, v') -> Just $ urlDecode replacePlus v'
                         _ -> Nothing
              in (urlDecode replacePlus k, v'')
-
-queryStringSeparators :: B.ByteString
-queryStringSeparators = B.pack [38, 59] -- ampersand, semicolon
-
--- | Break the second bytestring at the first occurrence of any bytes from
--- the first bytestring, discarding that byte.
-breakDiscard :: B.ByteString -> B.ByteString -> (B.ByteString, B.ByteString)
-breakDiscard seps s =
-    let (x, y) = B.break (`B.elem` seps) s
-     in (x, B.drop 1 y)
+        -- Break the second bytestring at the first occurrence of any bytes from
+        -- the first bytestring, discarding that byte.
+        breakDiscard :: B.ByteString -> B.ByteString -> (B.ByteString, B.ByteString)
+        breakDiscard seps s =
+            let (x, y) = B.break (`B.elem` seps) s
+             in (x, B.drop 1 y)
 
 -- | Parse 'SimpleQuery' from a 'B.ByteString'.
 --
@@ -300,19 +298,21 @@ urlEncodeBuilder' extraUnreserved =
         | unreserved ch = B.word8 ch
         | otherwise = h2 ch
 
+    -- The order is optimized from most expected to least expected
     unreserved ch
-        | ch >= 65 && ch <= 90 = True -- A-Z
-        | ch >= 97 && ch <= 122 = True -- a-z
-        | ch >= 48 && ch <= 57 = True -- 0-9
-    unreserved c = c `elem` extraUnreserved
+        | ch >= 0x61 && ch <= 0x7A = True -- a-z
+        | ch >= 0x30 && ch <= 0x39 = True -- 0-9
+        | ch >= 0x41 && ch <= 0x5A = True -- A-Z
+        | otherwise = ch `elem` extraUnreserved
 
     -- must be upper-case
-    h2 v = B.word8 37 `mappend` B.word8 (h a) `mappend` B.word8 (h b) -- 37 = %
+    h2 v = B.word8 _percent `mappend` B.word8 (h a) `mappend` B.word8 (h b)
       where
-        (a, b) = v `divMod` 16
+        a = v `shiftR` 4
+        b = v .&. 0x0F
     h i
-        | i < 10 = 48 + i -- zero (0)
-        | otherwise = 65 + i - 10 -- 65: A
+        | i < 10 = 0x30 + i -- zero (0)
+        | otherwise = 0x41 + i - 10 -- 0x41: A
 
 -- | Percent-encoding for URLs.
 --
@@ -359,19 +359,19 @@ urlDecode replacePlus z = fst $ B.unfoldrN (B.length z) go z
         case B.uncons bs of
             Nothing -> Nothing
             -- plus to space
-            Just (43, ws) | replacePlus -> Just (32, ws)
+            Just (0x2B, ws) | replacePlus -> Just (0x20, ws)
             -- percent
-            Just (37, ws) -> Just $ fromMaybe (37, ws) $ do
+            Just tup@(0x25, ws) -> Just $ fromMaybe tup $ do
                 (x, xs) <- B.uncons ws
-                x' <- hexVal x
                 (y, ys) <- B.uncons xs
-                y' <- hexVal y
-                Just (combine x' y', ys)
-            Just (w, ws) -> Just (w, ws)
+                a <- hexVal x
+                b <- hexVal y
+                Just (a `combine` b, ys)
+            Just other -> Just other
     hexVal w
-        | 48 <= w && w <= 57 = Just $ w - 48 -- 0 - 9
-        | 65 <= w && w <= 70 = Just $ w - 55 -- A - F
-        | 97 <= w && w <= 102 = Just $ w - 87 -- a - f
+        | 0x30 <= w && w <= 0x39 = Just $ w .&. 0x0F -- 0 - 9
+        | 0x41 <= w && w <= 0x46 = Just $ w - 0x37 -- A - F ((w - 0x41) + 10)
+        | 0x61 <= w && w <= 0x66 = Just $ w - 0x57 -- a - f ((w - 0x61) + 10)
         | otherwise = Nothing
     combine :: Word8 -> Word8 -> Word8
     combine a b = shiftL a 4 .|. b
@@ -409,13 +409,13 @@ urlDecode replacePlus z = fst $ B.unfoldrN (B.length z) go z
 --
 -- @since 0.5
 encodePathSegments :: [Text] -> B.Builder
-encodePathSegments = foldr (\x -> mappend (B.byteString "/" `mappend` encodePathSegment x)) mempty
+encodePathSegments = foldr (\x -> mappend (B.word8 _slash `mappend` encodePathSegment x)) mempty
 
 -- | Like 'encodePathSegments', but without the initial slash.
 --
 -- @since 0.6.10
 encodePathSegmentsRelative :: [Text] -> B.Builder
-encodePathSegmentsRelative xs = mconcat $ intersperse (B.byteString "/") (map encodePathSegment xs)
+encodePathSegmentsRelative xs = mconcat $ intersperse (B.word8 _slash) (map encodePathSegment xs)
 
 encodePathSegment :: Text -> B.Builder
 encodePathSegment = urlEncodeBuilder False . encodeUtf8
@@ -433,10 +433,11 @@ decodePathSegments a =
   where
     drop1Slash bs =
         case B.uncons bs of
-            Just (47, bs') -> bs' -- 47 == /
+            -- 0x2F == _slash
+            Just (0x2F, bs') -> bs'
             _ -> bs
     go bs =
-        let (x, y) = B.break (== 47) bs
+        let (x, y) = B.break (== _slash) bs
          in decodePathSegment x
                 : if B.null y
                     then []
@@ -478,7 +479,7 @@ extractPath = ensureNonEmpty . extract
         | "http://" `B.isPrefixOf` path = (snd . breakOnSlash . B.drop 7) path
         | "https://" `B.isPrefixOf` path = (snd . breakOnSlash . B.drop 8) path
         | otherwise = path
-    breakOnSlash = B.break (== 47)
+    breakOnSlash = B.break (== _slash)
     ensureNonEmpty "" = "/"
     ensureNonEmpty p = p
 
@@ -494,7 +495,7 @@ encodePath x y = encodePathSegments x `mappend` renderQueryBuilder True y
 -- @since 0.5
 decodePath :: B.ByteString -> ([Text], Query)
 decodePath b =
-    let (x, y) = B.break (== 63) b -- question mark
+    let (x, y) = B.break (== _question) b
      in (decodePathSegments x, parseQuery y)
 
 -----------------------------------------------------------------------------------------
@@ -545,22 +546,25 @@ renderQueryPartialEscape qm =
 -- @since 0.12.1
 renderQueryBuilderPartialEscape :: Bool -> PartialEscapeQuery -> B.Builder
 renderQueryBuilderPartialEscape _ [] = mempty
--- FIXME: replace mconcat + map with foldr
 renderQueryBuilderPartialEscape qmark' (p : ps) =
-    mconcat $
-        go (if qmark' then qmark else mempty) p
-            : map (go amp) ps
+    mconcat $ go qmark p : map (go amp) ps
   where
-    qmark = B.byteString "?"
-    amp = B.byteString "&"
-    equal = B.byteString "="
+    qmark = if qmark' then B.word8 _question else mempty
+    amp = B.word8 _ampersand
     go sep (k, mv) =
         mconcat
             [ sep
             , urlEncodeBuilder True k
             , case mv of
                 [] -> mempty
-                vs -> equal `mappend` mconcat (map encode vs)
+                vs -> B.word8 _equal `mappend` mconcat (map encode vs)
             ]
     encode (QE v) = urlEncodeBuilder True v
     encode (QN v) = B.byteString v
+
+_percent, _ampersand, _slash, _equal, _question :: Word8
+_percent = 0x25
+_ampersand = 0x26
+_slash = 0x2F
+_equal = 0x3D
+_question = 0x3F

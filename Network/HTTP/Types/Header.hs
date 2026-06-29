@@ -90,13 +90,21 @@ module Network.HTTP.Types.Header (
 )
 where
 
+import Control.Monad (guard)
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Builder as B
+import qualified Data.ByteString.Builder as B (
+    Builder,
+    byteString,
+    integerDec,
+    toLazyByteString,
+    word8,
+ )
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.CaseInsensitive as CI
 import Data.Data (Data)
 import Data.List (intersperse)
+import Data.Word (Word8)
 import GHC.Generics (Generic)
 
 -- | A full HTTP header field with the name and value separated.
@@ -483,9 +491,9 @@ data ByteRange
 --
 -- @since 0.6.11
 renderByteRangeBuilder :: ByteRange -> B.Builder
-renderByteRangeBuilder (ByteRangeFrom from) = B.integerDec from `mappend` B.char7 '-'
-renderByteRangeBuilder (ByteRangeFromTo from to) = B.integerDec from `mappend` B.char7 '-' `mappend` B.integerDec to
-renderByteRangeBuilder (ByteRangeSuffix suffix) = B.char7 '-' `mappend` B.integerDec suffix
+renderByteRangeBuilder (ByteRangeFrom from) = B.integerDec from `mappend` B.word8 _hyphen
+renderByteRangeBuilder (ByteRangeFromTo from to) = B.integerDec from `mappend` B.word8 _hyphen `mappend` B.integerDec to
+renderByteRangeBuilder (ByteRangeSuffix suffix) = B.word8 _hyphen `mappend` B.integerDec suffix
 
 -- | Renders a byte range into a 'B.ByteString'.
 --
@@ -507,7 +515,7 @@ type ByteRanges = [ByteRange]
 renderByteRangesBuilder :: ByteRanges -> B.Builder
 renderByteRangesBuilder xs =
     B.byteString "bytes="
-        `mappend` mconcat (intersperse (B.char7 ',') $ map renderByteRangeBuilder xs)
+        `mappend` mconcat (intersperse (B.word8 _comma) $ map renderByteRangeBuilder xs)
 
 -- | Renders a list of byte ranges into a 'B.ByteString'.
 --
@@ -540,33 +548,35 @@ renderByteRanges = BL.toStrict . B.toLazyByteString . renderByteRangesBuilder
 -- @since 0.9.1
 parseByteRanges :: B.ByteString -> Maybe ByteRanges
 parseByteRanges bs1 = do
-    bs2 <- stripPrefixB "bytes=" bs1
-    (r, bs3) <- range bs2
-    ranges (r :) bs3
+    (r, bs2) <- stripBytes >>= range
+    ranges (r :) bs2
   where
+    stripBytes = do
+        let prefix = "bytes="
+            prefixLen = B.length prefix
+            (pre, post) = B.splitAt prefixLen bs1
+        guard $ pre == prefix
+        Just post
     range bs2 = do
         (i, bs3) <- B8.readInteger bs2
         if i < 0 -- has prefix "-" ("-0" is not valid, but here treated as "0-")
             then Just (ByteRangeSuffix (negate i), bs3)
             else do
-                bs4 <- stripPrefixB "-" bs3
+                bs4 <- pop _hyphen bs3
                 case B8.readInteger bs4 of
                     Just (j, bs5) | j >= i -> Just (ByteRangeFromTo i j, bs5)
                     _ -> Just (ByteRangeFrom i, bs4)
     ranges front bs3
         | B.null bs3 = Just (front [])
         | otherwise = do
-            bs4 <- stripPrefixB "," bs3
+            bs4 <- pop _comma bs3
             (r, bs5) <- range bs4
             ranges (front . (r :)) bs5
+    pop w8 bs = do
+        (b, rest) <- B.uncons bs
+        guard $ b == w8
+        Just rest
 
-stripPrefixB :: B.ByteString -> B.ByteString -> Maybe B.ByteString
-#if !MIN_VERSION_bytestring(0,10,8)
--- FIXME: Use 'stripPrefix' from the 'bytestring' package.
--- Might have to update the dependency constraints though.
-stripPrefixB x y
-    | x `B.isPrefixOf` y = Just (B.drop (B.length x) y)
-    | otherwise = Nothing
-#else
-stripPrefixB = B.stripPrefix
-#endif
+_comma, _hyphen :: Word8
+_comma = 0x2C
+_hyphen = 0x2D

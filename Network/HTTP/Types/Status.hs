@@ -128,6 +128,7 @@ module Network.HTTP.Types.Status (
 
 import Data.ByteString as B (ByteString, empty)
 import Data.Data (Data)
+import Data.Function (on)
 import GHC.Generics (Generic)
 
 -- | HTTP Status.
@@ -166,13 +167,13 @@ data Status = Status
 
 -- | A 'Status' is equal to another 'Status' if the status codes are equal.
 instance Eq Status where
-    Status{statusCode = a} == Status{statusCode = b} = a == b
+    (==) = (==) `on` statusCode
 
 -- | 'Status'es are ordered according to their status codes only.
 instance Ord Status where
-    compare Status{statusCode = a} Status{statusCode = b} = a `compare` b
+    compare = compare `on` statusCode
 
--- | Be advised, that when using the \"enumFrom*\" family of methods or
+-- | Be advised, that when using the @enumFrom*@ family of methods or
 -- ranges in lists, it will generate all possible status codes.
 --
 -- E.g. @[status100 .. status200]@ generates 'Status'es of @100, 101, 102 .. 198, 199, 200@
