@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+
 module Network.HTTP.Types.VersionSpec (main, spec) where
 
 import Test.Hspec
@@ -8,9 +10,21 @@ main :: IO ()
 main = hspec spec
 
 spec :: Spec
-spec =
+spec = do
     describe "Regression tests" $
         mapM_ checkVersion allVersions
+    describe "Patterns" $ do
+        patternMatch http09 (\Http09 -> pure ())
+        patternMatch http10 (\Http10 -> pure ())
+        patternMatch http11 (\Http11 -> pure ())
+        patternMatch http20 (\Http20 -> pure ())
+        patternMatch http30 (\Http30 -> pure ())
+
+patternMatch :: HttpVersion -> (HttpVersion -> IO ()) -> SpecWith ()
+patternMatch hv f =
+    it name $ f hv `shouldReturn` ()
+  where
+    name = "match the version " <> show hv
 
 -- | [("Rendered", {constant}, {literal})]
 allVersions :: [(String, HttpVersion, HttpVersion)]
