@@ -23,13 +23,23 @@ module Network.HTTP.Types.Header (
     hAcceptCharset,
     hAcceptEncoding,
     hAcceptLanguage,
+    hAcceptPatch,
     hAcceptQuery,
     hAcceptRanges,
+    hAccessControlAllowCredentials,
+    hAccessControlAllowHeaders,
+    hAccessControlAllowMethods,
+    hAccessControlAllowOrigin,
+    hAccessControlExposeHeaders,
+    hAccessControlMaxAge,
+    hAccessControlRequestMethod,
     hAge,
     hAllow,
+    hAltSvc,
     hAuthorization,
     hCacheControl,
     hConnection,
+    hContentDigest,
     hContentDisposition,
     hContentEncoding,
     hContentLanguage,
@@ -37,12 +47,15 @@ module Network.HTTP.Types.Header (
     hContentLocation,
     hContentMD5,
     hContentRange,
+    hContentSecurityPolicy,
+    hContentSecurityPolicyReportOnly,
     hContentType,
     hCookie,
     hDate,
     hETag,
     hExpect,
     hExpires,
+    hForwarded,
     hFrom,
     hHost,
     hIfMatch,
@@ -51,6 +64,7 @@ module Network.HTTP.Types.Header (
     hIfRange,
     hIfUnmodifiedSince,
     hLastModified,
+    hLink,
     hLocation,
     hMaxForwards,
     hMIMEVersion,
@@ -65,6 +79,7 @@ module Network.HTTP.Types.Header (
     hRetryAfter,
     hServer,
     hSetCookie,
+    hStrictTransportSecurity,
     hTE,
     hTrailer,
     hTransferEncoding,
@@ -144,6 +159,48 @@ hAcceptCharset = "Accept-Charset"
 -- @since 0.9
 hAcceptEncoding :: HeaderName
 hAcceptEncoding = "Accept-Encoding"
+
+-- | [Access-Control-Allow-Credentials](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-origin-response-header)
+--
+-- @since 0.12.6
+hAccessControlAllowCredentials :: HeaderName
+hAccessControlAllowCredentials = "Access-Control-Allow-Credentials"
+
+-- | [Access-Control-Allow-Headers](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-headers-response-header)
+--
+-- @since 0.12.6
+hAccessControlAllowHeaders :: HeaderName
+hAccessControlAllowHeaders = "Access-Control-Allow-Headers"
+
+-- | [Access-Control-Allow-Methods](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-methods-response-header)
+--
+-- @since 0.12.6
+hAccessControlAllowMethods :: HeaderName
+hAccessControlAllowMethods = "Access-Control-Allow-Methods"
+
+-- | [Access-Control-Allow-Origin](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-origin-response-header)
+--
+-- @since 0.12.6
+hAccessControlAllowOrigin :: HeaderName
+hAccessControlAllowOrigin = "Access-Control-Allow-Origin"
+
+-- | [Access-Control-Expose-Headers](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-expose-headers-response-header)
+--
+-- @since 0.12.6
+hAccessControlExposeHeaders :: HeaderName
+hAccessControlExposeHeaders = "Access-Control-Expose-Headers"
+
+-- | [Access-Control-Max-Age](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-max-age-response-header)
+--
+-- @since 0.12.6
+hAccessControlMaxAge :: HeaderName
+hAccessControlMaxAge = "Access-Control-Max-Age"
+
+-- | [Access-Control-Request-Method](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-request-method-request-header)
+--
+-- @since 0.12.6
+hAccessControlRequestMethod :: HeaderName
+hAccessControlRequestMethod = "Access-Control-Request-Method"
 
 -- | [Accept-Language](https://www.rfc-editor.org/rfc/rfc9110.html#name-accept-language)
 --
@@ -421,17 +478,41 @@ hWWWAuthenticate = "WWW-Authenticate"
 hWarning :: HeaderName
 hWarning = "Warning"
 
+-- | [Accept-Patch](https://www.rfc-editor.org/rfc/rfc5789.html#section-3.1)
+--
+-- @since 0.12.6
+hAcceptPatch :: HeaderName
+hAcceptPatch = "Accept-Patch"
+
+-- | [Alt-Svc](https://www.rfc-editor.org/rfc/rfc7838.html#section-3)
+--
+-- @since 0.12.6
+hAltSvc :: HeaderName
+hAltSvc = "Alt-Svc"
+
 -- | [Content-Disposition](https://www.rfc-editor.org/rfc/rfc6266.html)
 --
 -- @since 0.10
 hContentDisposition :: HeaderName
 hContentDisposition = "Content-Disposition"
 
--- | [MIME-Version](https://www.rfc-editor.org/rfc/rfc2616.html#section-19.4.1)
+-- | [Content-Digest](https://www.rfc-editor.org/rfc/rfc9530.html#section-2)
 --
--- @since 0.10
-hMIMEVersion :: HeaderName
-hMIMEVersion = "MIME-Version"
+-- @since 0.12.6
+hContentDigest :: HeaderName
+hContentDigest = "Content-Digest"
+
+-- | [Content-Security-Policy](https://www.w3.org/TR/CSP3/#csp-header)
+--
+-- @since 0.12.6
+hContentSecurityPolicy :: HeaderName
+hContentSecurityPolicy = "Content-Security-Policy"
+
+-- | [Content-Security-Policy-Report-Only](https://www.w3.org/TR/CSP3/#cspro-header)
+--
+-- @since 0.12.6
+hContentSecurityPolicyReportOnly :: HeaderName
+hContentSecurityPolicyReportOnly = "Content-Security-Policy-Report-Only"
 
 -- | [Cookie](https://www.rfc-editor.org/rfc/rfc6265.html#section-4.2)
 --
@@ -439,11 +520,23 @@ hMIMEVersion = "MIME-Version"
 hCookie :: HeaderName
 hCookie = "Cookie"
 
--- | [Set-Cookie](https://www.rfc-editor.org/rfc/rfc6265.html#section-4.1)
+-- | [Forwarded](https://www.rfc-editor.org/rfc/rfc7239.html)
+--
+-- @since 0.12.6
+hForwarded :: HeaderName
+hForwarded = "Forwarded"
+
+-- | [Link](https://www.rfc-editor.org/rfc/rfc8288.html#section-3)
+--
+-- @since 0.12.6
+hLink :: HeaderName
+hLink = "Link"
+
+-- | [MIME-Version](https://www.rfc-editor.org/rfc/rfc2616.html#section-19.4.1)
 --
 -- @since 0.10
-hSetCookie :: HeaderName
-hSetCookie = "Set-Cookie"
+hMIMEVersion :: HeaderName
+hMIMEVersion = "MIME-Version"
 
 -- | [Origin](https://www.rfc-editor.org/rfc/rfc6454.html#section-7)
 --
@@ -462,6 +555,18 @@ hPrefer = "Prefer"
 -- @since 0.12.2
 hPreferenceApplied :: HeaderName
 hPreferenceApplied = "Preference-Applied"
+
+-- | [Set-Cookie](https://www.rfc-editor.org/rfc/rfc6265.html#section-4.1)
+--
+-- @since 0.10
+hSetCookie :: HeaderName
+hSetCookie = "Set-Cookie"
+
+-- | [Strict-Transport-Security](https://www.rfc-editor.org/rfc/rfc6797.html#section-6.1)
+--
+-- @since 0.12.6
+hStrictTransportSecurity :: HeaderName
+hStrictTransportSecurity = "Strict-Transport-Security"
 
 -- | An individual byte range. Used in @Range@ request headers.
 -- This type and its accompanying functions are /NOT/ compatible with the
