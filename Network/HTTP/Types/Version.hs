@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE PatternSynonyms #-}
@@ -12,17 +13,23 @@
 -- @HTTP/1.0@. If you're expecting HTTP v2 or v3, you'd be using ALPN tokens,
 -- which would be @http/1.1@, @h2@ or @h3@.
 module Network.HTTP.Types.Version (
+#if __GLASGOW_HASKELL__ >= 800
     HttpVersion (
-        -- DO NOT use "..," as GHC 7.10.3 doesn't parse that
-        HttpVersion,
-        httpMajor,
-        httpMinor,
+        ..,
         Http09,
         Http10,
         Http11,
         Http20,
         Http30
     ),
+#else
+    HttpVersion (..),
+    pattern Http09,
+    pattern Http10,
+    pattern Http11,
+    pattern Http20,
+    pattern Http30,
+#endif
     http09,
     http10,
     http11,
