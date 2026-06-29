@@ -13,7 +13,9 @@
 -- which would be @http/1.1@, @h2@ or @h3@.
 module Network.HTTP.Types.Version (
     HttpVersion (
-        ..,
+        HttpVersion,
+        httpMajor,
+        httpMinor,
         Http09,
         Http10,
         Http11,

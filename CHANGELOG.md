@@ -8,6 +8,7 @@
 ## 0.12.6 [2026-08-13]
 
 * Remove `array` dependency
+* Add parsing and rendering functions for `Status`
 * Add pattern synonyms for `HttpVersion`
   * `Http09`
   * `Http10`
