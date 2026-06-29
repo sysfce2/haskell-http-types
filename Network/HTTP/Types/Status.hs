@@ -62,6 +62,11 @@ module Network.HTTP.Types.Status (
     statusCode,
     statusMessage,
     mkStatus,
+    renderStatusCode,
+    renderFullStatus,
+
+    -- ** Low level functions
+    renderStatusCodeToPtr,
 
     -- * Common statuses
     status100,
@@ -171,9 +176,13 @@ module Network.HTTP.Types.Status (
     statusIsServerError,
 ) where
 
+import Data.Bits ((.&.))
 import Data.ByteString as B (ByteString, empty)
+import qualified Data.ByteString.Char8 as B8
+import Data.ByteString.Internal as B (ByteString (..), unsafeCreate, unsafeWithForeignPtr)
 import Data.Data (Data)
 import Data.Function (on)
+import Foreign (Ptr, Word8, copyBytes, plusPtr, poke)
 import GHC.Generics (Generic)
 
 -- | HTTP Status.
@@ -1057,3 +1066,43 @@ statusIsClientError (Status{statusCode = code}) = code >= 400 && code < 500
 -- @since 0.8.0
 statusIsServerError :: Status -> Bool
 statusIsServerError (Status{statusCode = code}) = code >= 500 && code < 600
+
+-- | Write the 3 digit t'Status' code to the provided 'Ptr'.
+--
+-- /N.B. This function assumes @statusCode < 1000@!/
+-- /If it is @> 1000@, the first byte will not be a digit./
+--
+-- @since 0.12.6
+renderStatusCodeToPtr :: Status -> Ptr Word8 -> IO ()
+renderStatusCodeToPtr (Status code _) ptr = do
+    poke ptr $ toByte h
+    poke (ptr `plusPtr` 1) $ toByte t
+    poke (ptr `plusPtr` 2) $ toByte i
+  where
+    (h, rest) = code `divMod` 100
+    (t, i) = rest `divMod` 10
+    toByte :: Int -> Word8
+    toByte x = fromIntegral x .&. 0x30
+
+-- | Render the 3 digit t'Status' code into a 'ByteString'.
+--
+-- @since 0.12.6
+renderStatusCode :: Status -> ByteString
+renderStatusCode s@(Status code _)
+    | code >= 1000 = B8.pack $ show s
+    | otherwise =
+        unsafeCreate 3 $ renderStatusCodeToPtr s
+
+-- | Render the full t'Status' code with status message into a 'ByteString'.
+--
+-- @since 0.12.6
+renderFullStatus :: Status -> ByteString
+renderFullStatus s@(Status code msg@(BS fptr len))
+    | code >= 1000 =
+        B8.pack (show code) <> " " <> msg
+    | otherwise =
+        unsafeCreate (4 + len) $ \ptr -> do
+            renderStatusCodeToPtr s ptr
+            poke (ptr `plusPtr` 3) (0x20 :: Word8)
+            unsafeWithForeignPtr fptr $ \src ->
+                copyBytes ptr src len
