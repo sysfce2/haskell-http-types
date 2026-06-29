@@ -12,6 +12,7 @@ import Test.QuickCheck (Arbitrary (..), choose, property, resize)
 import Test.QuickCheck.Instances ()
 
 import Network.HTTP.Types
+import Network.HTTP.Types.Status
 
 main :: IO ()
 main = hspec spec
@@ -34,6 +35,18 @@ spec = do
         it "only orders on 'statusCode'" $
             property $
                 \st1 st2 -> (st1 < st2) == ((<) `on` statusCode) st1 st2
+    describe "Render functions" $ do
+        it "renders the code" $ do
+            renderStatusCode notFound404 `shouldBe` "404"
+            renderStatusCode continue100 `shouldBe` "100"
+            renderStatusCode (mkStatus 12 "") `shouldBe` "012"
+            renderStatusCode (mkStatus 987 "") `shouldBe` "987"
+        it "renders the message" $ do
+            renderFullStatus notFound404 `shouldBe` "404 Not Found"
+            renderFullStatus continue100 `shouldBe` "100 Continue"
+            renderFullStatus (mkStatus 12 "Short") `shouldBe` "012 Short"
+            renderFullStatus (mkStatus 987 "Pretty Long If I May Say So Myself")
+                `shouldBe` "987 Pretty Long If I May Say So Myself"
 
 categoryCheck :: String -> (Status -> Bool) -> [StatusTuple] -> Spec
 categoryCheck name p shoulds = do

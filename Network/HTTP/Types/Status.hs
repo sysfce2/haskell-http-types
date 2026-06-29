@@ -176,8 +176,8 @@ module Network.HTTP.Types.Status (
     statusIsServerError,
 ) where
 
-import Data.Bits ((.&.))
-import Data.ByteString as B (ByteString, empty)
+import Data.Bits ((.|.))
+import Data.ByteString as B (ByteString, empty, length)
 import qualified Data.ByteString.Char8 as B8
 import Data.ByteString.Internal as B (ByteString (..), unsafeCreate, unsafeWithForeignPtr)
 import Data.Data (Data)
@@ -1082,7 +1082,7 @@ renderStatusCodeToPtr (Status code _) ptr = do
     (h, rest) = code `divMod` 100
     (t, i) = rest `divMod` 10
     toByte :: Int -> Word8
-    toByte x = fromIntegral x .&. 0x30
+    toByte x = fromIntegral x .|. 0x30
 
 -- | Render the 3 digit t'Status' code into a 'ByteString'.
 --
@@ -1093,16 +1093,26 @@ renderStatusCode s@(Status code _)
     | otherwise =
         unsafeCreate 3 $ renderStatusCodeToPtr s
 
+-- | Writes the full t'Status' code to the provided 'Ptr'.
+--
+-- /N.B. Same caveat as with 'renderStatusCodeToPtr'./
+--
+-- @since 0.12.6
+renderFullStatusToPtr :: Status -> Ptr Word8 -> IO ()
+renderFullStatusToPtr s@(Status _ (BS fptr len)) ptr = do
+    renderStatusCodeToPtr s ptr
+    poke (ptr `plusPtr` 3) (0x20 :: Word8)
+    unsafeWithForeignPtr fptr $ \src ->
+        copyBytes (ptr `plusPtr` 4) src len
+
 -- | Render the full t'Status' code with status message into a 'ByteString'.
 --
 -- @since 0.12.6
 renderFullStatus :: Status -> ByteString
-renderFullStatus s@(Status code msg@(BS fptr len))
+renderFullStatus s@(Status code msg)
     | code >= 1000 =
         B8.pack (show code) <> " " <> msg
     | otherwise =
-        unsafeCreate (4 + len) $ \ptr -> do
-            renderStatusCodeToPtr s ptr
-            poke (ptr `plusPtr` 3) (0x20 :: Word8)
-            unsafeWithForeignPtr fptr $ \src ->
-                copyBytes ptr src len
+        unsafeCreate (4 + len) $ renderFullStatusToPtr s
+  where
+    len = B.length msg
