@@ -7,10 +7,12 @@
 
 module Network.HTTP.Types.URISpec (main, spec) where
 
+import Data.Bits ((.|.))
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Char as C
 import Data.Maybe (fromMaybe)
 import Data.Text as T (Text, null)
 import Debug.Trace (traceShow)
@@ -25,6 +27,7 @@ import Test.QuickCheck (
     property,
     suchThat,
     (.&&.),
+    (===),
     (==>),
  )
 import Test.QuickCheck.Instances ()
@@ -42,7 +45,7 @@ spec = do
         it "does not escape period and dash" $
             toStrictBS (encodePath ["foo-bar.baz"] [])
                 `shouldBe` "/foo-bar.baz"
-        -- FIXME: needs more path tests
+    -- FIXME: needs more path tests
 
     describe "encode/decode query" $ do
         it "is identity to encode and then decode" $
@@ -85,6 +88,13 @@ spec = do
         it "still encodes the same (query)" $
             mkGoldenFile "urlEncode-query" $
                 urlEncode True asciis
+        it "decodes lower case" $
+            property $ \bs ->
+                -- force all bytes to be above the ASCII range
+                let onlyPercent = B.map (.|. 0x80) bs
+                    -- Should only be percent encoded and then all "A-F -> a-f"
+                    lowerCaseEncoded = B8.map C.toLower $ urlEncode True onlyPercent
+                 in urlDecode True lowerCaseEncoded === onlyPercent
 
     describe "decodePathSegments" $ do
         it "is inverse to encodePathSegments" $
@@ -150,15 +160,15 @@ goldenDir = "test" </> ".golden"
 
 mkGoldenFile :: String -> B.ByteString -> Golden B.ByteString
 mkGoldenFile name content =
-    Golden {
-        output = content,
-        encodePretty = B8.unpack,
-        writeToFile = B.writeFile,
-        readFromFile = B.readFile,
-        goldenFile = goldenDir </> name </> "golden",
-        actualFile = Just (goldenDir </> name </> "actual"),
-        failFirstTime = False
-    }
+    Golden
+        { output = content
+        , encodePretty = B8.unpack
+        , writeToFile = B.writeFile
+        , readFromFile = B.readFile
+        , goldenFile = goldenDir </> name </> "golden"
+        , actualFile = Just (goldenDir </> name </> "actual")
+        , failFirstTime = False
+        }
 
 propEncodeDecodePath :: ([Text], QueryGen B.ByteString) -> Bool
 propEncodeDecodePath (p', QueryGen b) =
@@ -209,15 +219,15 @@ propDecodeSimpleQuery (QueryGen q) =
   where
     rq = renderQuery True q
 
-propEncodeDecodeQuerySimple :: QueryGen B.ByteString -> Bool -> Bool
+propEncodeDecodeQuerySimple :: QueryGen B.ByteString -> Bool -> Property
 propEncodeDecodeQuerySimple (QueryGen q') b =
-    q == (parseSimpleQuery . renderSimpleQuery b) q
+    q === (parseSimpleQuery . renderSimpleQuery b) q
   where
     q = fmap (fmap $ fromMaybe "") q'
 
-propEncodeDecodeURL :: B.ByteString -> Bool -> Bool -> Bool
+propEncodeDecodeURL :: B.ByteString -> Bool -> Bool -> Property
 propEncodeDecodeURL bs b1 b2 =
-    bs == urlDecode b1 (urlEncode b3 bs)
+    bs === urlDecode b1 (urlEncode b3 bs)
   where
     b3 = b1 || b2
 
