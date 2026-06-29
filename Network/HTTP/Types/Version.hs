@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 -- | Types and constants to describe the HTTP version.
 --
@@ -11,7 +12,14 @@
 -- @HTTP/1.0@. If you're expecting HTTP v2 or v3, you'd be using ALPN tokens,
 -- which would be @http/1.1@, @h2@ or @h3@.
 module Network.HTTP.Types.Version (
-    HttpVersion (..),
+    HttpVersion (
+        ..,
+        Http09,
+        Http10,
+        Http11,
+        Http20,
+        Http30
+    ),
     http09,
     http10,
     http11,
@@ -71,3 +79,24 @@ http20 = HttpVersion 2 0
 -- @since 0.12.5
 http30 :: HttpVersion
 http30 = HttpVersion 3 0
+
+----------------------
+-- Pattern Synonyms --
+----------------------
+
+pattern Http09, Http10, Http11, Http20, Http30 :: HttpVersion
+
+-- | @since 0.12.6
+pattern Http09 = HttpVersion 0 9
+
+-- | @since 0.12.6
+pattern Http10 = HttpVersion 1 0
+
+-- | @since 0.12.6
+pattern Http11 = HttpVersion 1 1
+
+-- | @since 0.12.6
+pattern Http20 = HttpVersion 2 0
+
+-- | @since 0.12.6
+pattern Http30 = HttpVersion 3 0
