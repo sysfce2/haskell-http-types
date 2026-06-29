@@ -1193,7 +1193,7 @@ renderFullStatusToPtr s@(Status _ (BS fptr len)) ptr = do
 renderFullStatus :: Status -> ByteString
 renderFullStatus s@(Status code msg)
     | code >= 1000 =
-        B8.pack (show code) <> " " <> msg
+        B8.pack (show code) `mappend` " " `mappend` msg
     | otherwise =
         unsafeCreate (4 + len) $ renderFullStatusToPtr s
   where
