@@ -8,6 +8,28 @@
 ## 0.12.6 [2026-08-13]
 
 * Remove `array` dependency
+* Add pattern synonyms for `HttpVersion`
+  * `Http09`
+  * `Http10`
+  * `Http11`
+  * `Http20`
+  * `Http30`
+* Add more constant headers:
+  * `hAcceptPatch`
+  * `hAccessControlAllowCredentials`
+  * `hAccessControlAllowHeaders`
+  * `hAccessControlAllowMethods`
+  * `hAccessControlAllowOrigin`
+  * `hAccessControlExposeHeaders`
+  * `hAccessControlMaxAge`
+  * `hAccessControlRequestMethod`
+  * `hAltSvc`
+  * `hContentDigest`
+  * `hContentSecurityPolicy`
+  * `hContentSecurityPolicyReportOnly`
+  * `hForwarded`
+  * `hLink`
+  * `hStrictTransportSecurity`
 
 ## 0.12.5 [2026-05-31]
 
