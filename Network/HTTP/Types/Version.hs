@@ -2,6 +2,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 -- | Types and constants to describe the HTTP version.
+--
+-- There are no parsing functions, as the formats are fairly different
+-- per version of HTTP. And seeing as there are only a handful of versions,
+-- it is easier to manually parse the version ad hoc.
+--
+-- For example, when you are expecting HTTP v1, try to match @HTTP/1.1@ or
+-- @HTTP/1.0@. If you're expecting HTTP v2 or v3, you'd be using ALPN tokens,
+-- which would be @http/1.1@, @h2@ or @h3@.
 module Network.HTTP.Types.Version (
     HttpVersion (..),
     http09,
@@ -32,6 +40,11 @@ data HttpVersion = HttpVersion
 
 -- | >>> show http11
 -- "HTTP/1.1"
+-- >>> show http20
+-- "HTTP/2.0"
+--
+-- This should not be used to render the HTTP version, as different versions
+-- have different ways of rendering (i.e. HTTP v2 uses @"h2"@ instead of @"HTTP/2.0"@)
 instance Show HttpVersion where
     show (HttpVersion major minor) = "HTTP/" ++ show major ++ "." ++ show minor
 
