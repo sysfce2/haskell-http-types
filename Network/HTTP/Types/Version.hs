@@ -13,6 +13,7 @@
 -- which would be @http/1.1@, @h2@ or @h3@.
 module Network.HTTP.Types.Version (
     HttpVersion (
+        -- DO NOT use "..," as GHC 7.10.3 doesn't parse that
         HttpVersion,
         httpMajor,
         httpMinor,
@@ -86,7 +87,12 @@ http30 = HttpVersion 3 0
 -- Pattern Synonyms --
 ----------------------
 
-pattern Http09, Http10, Http11, Http20, Http30 :: HttpVersion
+-- DO NOT put these on one line with commas, as GHC 7.10.3 doesn't parse that
+pattern Http09 :: HttpVersion
+pattern Http10 :: HttpVersion
+pattern Http11 :: HttpVersion
+pattern Http20 :: HttpVersion
+pattern Http30 :: HttpVersion
 
 -- | @since 0.12.6
 pattern Http09 = HttpVersion 0 9
