@@ -242,11 +242,15 @@ import Data.ByteString.Internal as B (
     ByteString (..),
     accursedUnutterablePerformIO,
     unsafeCreate,
-    unsafeWithForeignPtr,
  )
 import Data.Data (Data)
 import Data.Function (on)
 import Foreign (Ptr, Word8, copyBytes, peek, plusPtr, poke)
+#if !MIN_VERSION_base(4,15,0)
+import Foreign.ForeignPtr (withForeignPtr)
+#else
+import GHC.ForeignPtr (unsafeWithForeignPtr)
+#endif
 import GHC.Generics (Generic)
 
 -- | HTTP Status.
@@ -1267,3 +1271,8 @@ parseFullStatus bs = do
         Just (w, ws)
             | w == 0x20 -> Just $ mkStatus code ws
             | otherwise -> Nothing
+
+#if !MIN_VERSION_base(4,15,0)
+unsafeWithForeignPtr :: ForeignPtr a -> (Ptr a -> IO b) -> IO b
+unsafeWithForeignPtr = withForeignPtr
+#endif
