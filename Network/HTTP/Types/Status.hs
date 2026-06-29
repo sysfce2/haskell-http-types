@@ -1,13 +1,64 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 -- | Types and constants to describe HTTP status codes.
 --
 -- At the bottom are some functions to check if a given t'Status' is from a certain category. (i.e. @1XX@, @2XX@, etc.)
 module Network.HTTP.Types.Status (
     -- * HTTP Status
-    Status (Status),
+    Status (
+        Status,
+        Status100,
+        Status101,
+        Status200,
+        Status201,
+        Status202,
+        Status203,
+        Status204,
+        Status205,
+        Status206,
+        Status300,
+        Status301,
+        Status302,
+        Status303,
+        Status304,
+        Status305,
+        Status307,
+        Status308,
+        Status400,
+        Status401,
+        Status402,
+        Status403,
+        Status404,
+        Status405,
+        Status407,
+        Status408,
+        Status409,
+        Status410,
+        Status411,
+        Status412,
+        Status413,
+        Status414,
+        Status415,
+        Status416,
+        Status417,
+        Status418,
+        Status422,
+        Status426,
+        Status428,
+        Status429,
+        Status431,
+        Status451,
+        Status500,
+        Status501,
+        Status502,
+        Status503,
+        Status504,
+        Status505,
+        Status511
+    ),
     statusCode,
     statusMessage,
     mkStatus,
@@ -255,6 +306,14 @@ status101 = mkStatus 101 "Switching Protocols"
 switchingProtocols101 :: Status
 switchingProtocols101 = status101
 
+pattern Status100, Status101 :: Status
+
+-- | @since 0.12.6
+pattern Status100 <- Status 100 _
+
+-- | @since 0.12.6
+pattern Status101 <- Status 101 _
+
 -- | OK 200
 status200 :: Status
 status200 = mkStatus 200 "OK"
@@ -330,6 +389,29 @@ status206 = mkStatus 206 "Partial Content"
 -- @since 0.5.1
 partialContent206 :: Status
 partialContent206 = status206
+
+pattern Status200, Status201, Status202, Status203, Status204, Status205, Status206 :: Status
+
+-- | @since 0.12.6
+pattern Status200 <- Status 200 _
+
+-- | @since 0.12.6
+pattern Status201 <- Status 201 _
+
+-- | @since 0.12.6
+pattern Status202 <- Status 202 _
+
+-- | @since 0.12.6
+pattern Status203 <- Status 203 _
+
+-- | @since 0.12.6
+pattern Status204 <- Status 204 _
+
+-- | @since 0.12.6
+pattern Status205 <- Status 205 _
+
+-- | @since 0.12.6
+pattern Status206 <- Status 206 _
 
 -- | Multiple Choices 300
 status300 :: Status
@@ -410,6 +492,32 @@ status308 = mkStatus 308 "Permanent Redirect"
 -- @since 0.9
 permanentRedirect308 :: Status
 permanentRedirect308 = status308
+
+pattern Status300, Status301, Status302, Status303, Status304, Status305, Status307, Status308 :: Status
+
+-- | @since 0.12.6
+pattern Status300 <- Status 300 _
+
+-- | @since 0.12.6
+pattern Status301 <- Status 301 _
+
+-- | @since 0.12.6
+pattern Status302 <- Status 302 _
+
+-- | @since 0.12.6
+pattern Status303 <- Status 303 _
+
+-- | @since 0.12.6
+pattern Status304 <- Status 304 _
+
+-- | @since 0.12.6
+pattern Status305 <- Status 305 _
+
+-- | @since 0.12.6
+pattern Status307 <- Status 307 _
+
+-- | @since 0.12.6
+pattern Status308 <- Status 308 _
 
 -- | Bad Request 400
 status400 :: Status
@@ -706,6 +814,105 @@ status451 = mkStatus 451 "Unavailable For Legal Reasons"
 unavailableForLegalReasons451 :: Status
 unavailableForLegalReasons451 = status451
 
+pattern
+    Status400
+    , Status401
+    , Status402
+    , Status403
+    , Status404
+    , Status405
+    , Status407
+    , Status408
+    , Status409
+    , Status410
+    , Status411
+    , Status412
+    , Status413
+    , Status414
+    , Status415
+    , Status416
+    , Status417
+    , Status418
+    , Status422
+    , Status426
+    , Status428
+    , Status429
+    , Status431
+    , Status451 ::
+        Status
+
+-- | @since 0.12.6
+pattern Status400 <- Status 400 _
+
+-- | @since 0.12.6
+pattern Status401 <- Status 401 _
+
+-- | @since 0.12.6
+pattern Status402 <- Status 402 _
+
+-- | @since 0.12.6
+pattern Status403 <- Status 403 _
+
+-- | @since 0.12.6
+pattern Status404 <- Status 404 _
+
+-- | @since 0.12.6
+pattern Status405 <- Status 405 _
+
+-- | @since 0.12.6
+pattern Status407 <- Status 407 _
+
+-- | @since 0.12.6
+pattern Status408 <- Status 408 _
+
+-- | @since 0.12.6
+pattern Status409 <- Status 409 _
+
+-- | @since 0.12.6
+pattern Status410 <- Status 410 _
+
+-- | @since 0.12.6
+pattern Status411 <- Status 411 _
+
+-- | @since 0.12.6
+pattern Status412 <- Status 412 _
+
+-- | @since 0.12.6
+pattern Status413 <- Status 413 _
+
+-- | @since 0.12.6
+pattern Status414 <- Status 414 _
+
+-- | @since 0.12.6
+pattern Status415 <- Status 415 _
+
+-- | @since 0.12.6
+pattern Status416 <- Status 416 _
+
+-- | @since 0.12.6
+pattern Status417 <- Status 417 _
+
+-- | @since 0.12.6
+pattern Status418 <- Status 418 _
+
+-- | @since 0.12.6
+pattern Status422 <- Status 422 _
+
+-- | @since 0.12.6
+pattern Status426 <- Status 426 _
+
+-- | @since 0.12.6
+pattern Status428 <- Status 428 _
+
+-- | @since 0.12.6
+pattern Status429 <- Status 429 _
+
+-- | @since 0.12.6
+pattern Status431 <- Status 431 _
+
+-- | @since 0.12.6
+pattern Status451 <- Status 451 _
+
 -- | Internal Server Error 500
 status500 :: Status
 status500 = mkStatus 500 "Internal Server Error"
@@ -787,6 +994,29 @@ status511 = mkStatus 511 "Network Authentication Required"
 -- @since 0.8.5
 networkAuthenticationRequired511 :: Status
 networkAuthenticationRequired511 = status511
+
+pattern Status500, Status501, Status502, Status503, Status504, Status505, Status511 :: Status
+
+-- | @since 0.12.6
+pattern Status500 <- Status 500 _
+
+-- | @since 0.12.6
+pattern Status501 <- Status 501 _
+
+-- | @since 0.12.6
+pattern Status502 <- Status 502 _
+
+-- | @since 0.12.6
+pattern Status503 <- Status 503 _
+
+-- | @since 0.12.6
+pattern Status504 <- Status 504 _
+
+-- | @since 0.12.6
+pattern Status505 <- Status 505 _
+
+-- | @since 0.12.6
+pattern Status511 <- Status 511 _
 
 -- | Informational class
 --
