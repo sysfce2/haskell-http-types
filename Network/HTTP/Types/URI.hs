@@ -299,11 +299,12 @@ urlEncodeBuilder' extraUnreserved =
         | otherwise = h2 ch
 
     -- The order is optimized from most expected to least expected
-    unreserved ch
-        | ch >= 0x61 && ch <= 0x7A = True -- a-z
-        | ch >= 0x30 && ch <= 0x39 = True -- 0-9
-        | ch >= 0x41 && ch <= 0x5A = True -- A-Z
-        | otherwise = ch `elem` extraUnreserved
+    unreserved ch =
+        -- FIXME: could be one index lookup
+        (ch >= 0x61 && ch <= 0x7A) -- a-z
+            || (ch >= 0x30 && ch <= 0x39) -- 0-9
+            || (ch >= 0x41 && ch <= 0x5A) -- A-Z
+            || (ch `elem` extraUnreserved)
 
     -- must be upper-case
     h2 v = B.word8 _percent `mappend` B.word8 (h a) `mappend` B.word8 (h b)
@@ -311,8 +312,8 @@ urlEncodeBuilder' extraUnreserved =
         a = v `shiftR` 4
         b = v .&. 0x0F
     h i
-        | i < 10 = 0x30 + i -- zero (0)
-        | otherwise = 0x41 + i - 10 -- 0x41: A
+        | i < 10 = 0x30 + i -- digits (0x30 == '0')
+        | otherwise = 0x37 + i -- A-F (0x41 - 10; 0x41 == 'A')
 
 -- | Percent-encoding for URLs.
 --
@@ -369,10 +370,13 @@ urlDecode replacePlus z = fst $ B.unfoldrN (B.length z) go z
                 Just (a `combine` b, ys)
             Just other -> Just other
     hexVal w
-        | 0x30 <= w && w <= 0x39 = Just $ w .&. 0x0F -- 0 - 9
-        | 0x41 <= w && w <= 0x46 = Just $ w - 0x37 -- A - F ((w - 0x41) + 10)
-        | 0x61 <= w && w <= 0x66 = Just $ w - 0x57 -- a - f ((w - 0x61) + 10)
+        -- FIXME: could be one index lookup
+        | 0x30 <= w && w <= 0x39 = Just result -- 0 - 9
+        | 0x41 <= w && w <= 0x46 = Just (result + 9) -- A - F
+        | 0x61 <= w && w <= 0x66 = Just (result + 9) -- a - f
         | otherwise = Nothing
+      where
+        result = w .&. 0x0F
     combine :: Word8 -> Word8 -> Word8
     combine a b = shiftL a 4 .|. b
 
@@ -475,11 +479,17 @@ decodePathSegment = decodeUtf8With lenientDecode . urlDecode False
 extractPath :: B.ByteString -> B.ByteString
 extractPath = ensureNonEmpty . extract
   where
-    extract path
-        | "http://" `B.isPrefixOf` path = (snd . breakOnSlash . B.drop 7) path
-        | "https://" `B.isPrefixOf` path = (snd . breakOnSlash . B.drop 8) path
-        | otherwise = path
-    breakOnSlash = B.break (== _slash)
+    extract path =
+        case prefix of
+            "http://" -> fromSlash rest
+            "https:/"
+                -- we need one more _slash for it to be a correct protocol prefix
+                | Just (0x2F, more) <- B.uncons rest ->
+                    fromSlash more
+            _ -> path
+      where
+        (prefix, rest) = B.splitAt 7 path
+    fromSlash = B.dropWhile (/= _slash)
     ensureNonEmpty "" = "/"
     ensureNonEmpty p = p
 

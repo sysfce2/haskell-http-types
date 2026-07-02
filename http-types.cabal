@@ -7,7 +7,7 @@ Description:         Types and functions to describe and handle HTTP concepts.
 Homepage:            https://github.com/Vlix/http-types
 License:             BSD-3-Clause
 License-file:        LICENSE
-Author:              Aristid Breitkreuz, Michael Snoyman
+Author:              Felix Paulusma, Aristid Breitkreuz, Michael Snoyman
 Maintainer:          felix.paulusma@gmail.com
 Copyright:           (C) 2011 Aristid Breitkreuz, (C) 2023 Felix Paulusma
 Category:            Network, Web

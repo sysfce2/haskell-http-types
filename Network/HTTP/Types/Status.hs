@@ -117,6 +117,8 @@ module Network.HTTP.Types.Status (
     mkStatus,
 
     -- ** Parsing and Rendering
+
+    -- | These functions are quicker and more efficient than doing it yourself.
     parseStatusCode,
     renderStatusCode,
     parseFullStatus,
@@ -1152,7 +1154,7 @@ statusIsServerError (Status{statusCode = code}) = code >= 500 && code < 600
 -- | Write the 3 digit t'Status' code to the provided 'Ptr'.
 --
 -- /N.B. This function assumes @statusCode < 1000@!/
--- /If it is @> 1000@, the first byte will not be a digit./
+-- /If it is @>= 1000@, the first byte will not be a digit./
 --
 -- @since 0.12.6
 renderStatusCodeToPtr :: Status -> Ptr Word8 -> IO ()
