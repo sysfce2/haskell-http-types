@@ -1,5 +1,10 @@
 # Changelog for `http-types`
 
+## 0.13 [unreleased]
+
+* Add support for the QUERY method and Accept-Query response field name from
+  [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html).
+
 ## 0.12.6 [unreleased]
 
 * Remove `array` dependency

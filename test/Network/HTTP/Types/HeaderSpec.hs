@@ -46,6 +46,7 @@ allHeaders =
     , (hAcceptCharset, "Accept-Charset")
     , (hAcceptEncoding, "Accept-Encoding")
     , (hAcceptLanguage, "Accept-Language")
+    , (hAcceptQuery, "Accept-Query")
     , (hAcceptRanges, "Accept-Ranges")
     , (hAge, "Age")
     , (hAllow, "Allow")
