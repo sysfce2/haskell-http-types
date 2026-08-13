@@ -5,9 +5,8 @@
 * Add support for the QUERY method and Accept-Query response field name from
   [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html).
 
-## 0.12.6 [2026-08-13]
+## 0.12.7 [unreleased]
 
-* Remove `array` dependency
 * Add parsing and rendering functions for `Status`
 * Add pattern synonyms for `HttpVersion`
   * `Http09`
@@ -33,6 +32,10 @@
   * `hForwarded`
   * `hLink`
   * `hStrictTransportSecurity`
+
+## 0.12.6 [2026-08-13]
+
+* Remove `array` dependency
 
 ## 0.12.5 [2026-05-31]
 
