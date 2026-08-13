@@ -101,17 +101,17 @@ pattern Http11 :: HttpVersion
 pattern Http20 :: HttpVersion
 pattern Http30 :: HttpVersion
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Http09 = HttpVersion 0 9
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Http10 = HttpVersion 1 0
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Http11 = HttpVersion 1 1
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Http20 = HttpVersion 2 0
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Http30 = HttpVersion 3 0

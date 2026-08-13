@@ -385,11 +385,11 @@ status101 = mkStatus 101 "Switching Protocols"
 switchingProtocols101 :: Status
 switchingProtocols101 = status101
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status100 :: Status
 pattern Status100 <- Status 100 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status101 :: Status
 pattern Status101 <- Status 101 _
 
@@ -469,31 +469,31 @@ status206 = mkStatus 206 "Partial Content"
 partialContent206 :: Status
 partialContent206 = status206
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status200 :: Status
 pattern Status200 <- Status 200 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status201 :: Status
 pattern Status201 <- Status 201 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status202 :: Status
 pattern Status202 <- Status 202 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status203 :: Status
 pattern Status203 <- Status 203 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status204 :: Status
 pattern Status204 <- Status 204 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status205 :: Status
 pattern Status205 <- Status 205 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status206 :: Status
 pattern Status206 <- Status 206 _
 
@@ -578,35 +578,35 @@ permanentRedirect308 :: Status
 permanentRedirect308 = status308
 
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status300 :: Status
 pattern Status300 <- Status 300 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status301 :: Status
 pattern Status301 <- Status 301 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status302 :: Status
 pattern Status302 <- Status 302 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status303 :: Status
 pattern Status303 <- Status 303 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status304 :: Status
 pattern Status304 <- Status 304 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status305 :: Status
 pattern Status305 <- Status 305 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status307 :: Status
 pattern Status307 <- Status 307 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status308 :: Status
 pattern Status308 <- Status 308 _
 
@@ -905,99 +905,99 @@ status451 = mkStatus 451 "Unavailable For Legal Reasons"
 unavailableForLegalReasons451 :: Status
 unavailableForLegalReasons451 = status451
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status400 :: Status
 pattern Status400 <- Status 400 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status401 :: Status
 pattern Status401 <- Status 401 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status402 :: Status
 pattern Status402 <- Status 402 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status403 :: Status
 pattern Status403 <- Status 403 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status404 :: Status
 pattern Status404 <- Status 404 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status405 :: Status
 pattern Status405 <- Status 405 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status407 :: Status
 pattern Status407 <- Status 407 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status408 :: Status
 pattern Status408 <- Status 408 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status409 :: Status
 pattern Status409 <- Status 409 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status410 :: Status
 pattern Status410 <- Status 410 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status411 :: Status
 pattern Status411 <- Status 411 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status412 :: Status
 pattern Status412 <- Status 412 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status413 :: Status
 pattern Status413 <- Status 413 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status414 :: Status
 pattern Status414 <- Status 414 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status415 :: Status
 pattern Status415 <- Status 415 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status416 :: Status
 pattern Status416 <- Status 416 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status417 :: Status
 pattern Status417 <- Status 417 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status418 :: Status
 pattern Status418 <- Status 418 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status422 :: Status
 pattern Status422 <- Status 422 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status426 :: Status
 pattern Status426 <- Status 426 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status428 :: Status
 pattern Status428 <- Status 428 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status429 :: Status
 pattern Status429 <- Status 429 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status431 :: Status
 pattern Status431 <- Status 431 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status451 :: Status
 pattern Status451 <- Status 451 _
 
@@ -1083,31 +1083,31 @@ status511 = mkStatus 511 "Network Authentication Required"
 networkAuthenticationRequired511 :: Status
 networkAuthenticationRequired511 = status511
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status500 :: Status
 pattern Status500 <- Status 500 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status501 :: Status
 pattern Status501 <- Status 501 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status502 :: Status
 pattern Status502 <- Status 502 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status503 :: Status
 pattern Status503 <- Status 503 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status504 :: Status
 pattern Status504 <- Status 504 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status505 :: Status
 pattern Status505 <- Status 505 _
 
--- | @since 0.12.6
+-- | @since 0.13.0
 pattern Status511 :: Status
 pattern Status511 <- Status 511 _
 
@@ -1156,7 +1156,7 @@ statusIsServerError (Status{statusCode = code}) = code >= 500 && code < 600
 -- /N.B. This function assumes @statusCode < 1000@!/
 -- /If it is @>= 1000@, the first byte will not be a digit./
 --
--- @since 0.12.6
+-- @since 0.13.0
 renderStatusCodeToPtr :: Status -> Ptr Word8 -> IO ()
 renderStatusCodeToPtr (Status code _) ptr = do
     poke ptr $ toByte h
@@ -1170,7 +1170,7 @@ renderStatusCodeToPtr (Status code _) ptr = do
 
 -- | Render the 3 digit t'Status' code into a 'ByteString'.
 --
--- @since 0.12.6
+-- @since 0.13.0
 renderStatusCode :: Status -> ByteString
 renderStatusCode s@(Status code _)
     | code >= 1000 = B8.pack $ show s
@@ -1181,7 +1181,7 @@ renderStatusCode s@(Status code _)
 --
 -- /N.B. Same caveat from 'renderStatusCodeToPtr' applies./
 --
--- @since 0.12.6
+-- @since 0.13.0
 renderFullStatusToPtr :: Status -> Ptr Word8 -> IO ()
 renderFullStatusToPtr s@(Status _ (PS fptr offset len)) ptr = do
     renderStatusCodeToPtr s ptr
@@ -1191,7 +1191,7 @@ renderFullStatusToPtr s@(Status _ (PS fptr offset len)) ptr = do
 
 -- | Render the full t'Status' code with status message into a 'ByteString'.
 --
--- @since 0.12.6
+-- @since 0.13.0
 renderFullStatus :: Status -> ByteString
 renderFullStatus s@(Status code msg)
     | code >= 1000 =
