@@ -39,11 +39,7 @@ jobs:
 
     - name: Build
       run: |
-        cabal build --ghc-option='-Wall' \
-          --constraint="bytestring==0.10.6.0" \
-          --constraint="array==0.5.1.0" \
-          --constraint="case-insensitive==1.2.0.2" \
-          --constraint="text==1.2.0.2"
+        cabal build --ghc-option='-Wall' --project-file=cabal.7.10.3.project
 
   cabal:
     name: cabal / ghc-${{matrix.ghc}} / ${{ matrix.os }}
