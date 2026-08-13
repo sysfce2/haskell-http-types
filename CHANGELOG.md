@@ -1,6 +1,6 @@
 # Changelog for `http-types`
 
-## 0.12.6 [unreleased]
+## 0.12.6 [2026-08-13]
 
 * Remove `array` dependency
 
