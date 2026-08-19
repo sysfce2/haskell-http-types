@@ -10,107 +10,10 @@
 module Network.HTTP.Types.Status (
     -- * HTTP Status
 #if __GLASGOW_HASKELL__ >= 800
-    Status (
-        Status,
-        Status100,
-        Status101,
-        Status200,
-        Status201,
-        Status202,
-        Status203,
-        Status204,
-        Status205,
-        Status206,
-        Status300,
-        Status301,
-        Status302,
-        Status303,
-        Status304,
-        Status305,
-        Status307,
-        Status308,
-        Status400,
-        Status401,
-        Status402,
-        Status403,
-        Status404,
-        Status405,
-        Status407,
-        Status408,
-        Status409,
-        Status410,
-        Status411,
-        Status412,
-        Status413,
-        Status414,
-        Status415,
-        Status416,
-        Status417,
-        Status418,
-        Status422,
-        Status426,
-        Status428,
-        Status429,
-        Status431,
-        Status451,
-        Status500,
-        Status501,
-        Status502,
-        Status503,
-        Status504,
-        Status505,
-        Status511
-    ),
+    Status (Status, StatusCode),
 #else
     Status(Status),
-    pattern Status100,
-    pattern Status101,
-    pattern Status200,
-    pattern Status201,
-    pattern Status202,
-    pattern Status203,
-    pattern Status204,
-    pattern Status205,
-    pattern Status206,
-    pattern Status300,
-    pattern Status301,
-    pattern Status302,
-    pattern Status303,
-    pattern Status304,
-    pattern Status305,
-    pattern Status307,
-    pattern Status308,
-    pattern Status400,
-    pattern Status401,
-    pattern Status402,
-    pattern Status403,
-    pattern Status404,
-    pattern Status405,
-    pattern Status407,
-    pattern Status408,
-    pattern Status409,
-    pattern Status410,
-    pattern Status411,
-    pattern Status412,
-    pattern Status413,
-    pattern Status414,
-    pattern Status415,
-    pattern Status416,
-    pattern Status417,
-    pattern Status418,
-    pattern Status422,
-    pattern Status426,
-    pattern Status428,
-    pattern Status429,
-    pattern Status431,
-    pattern Status451,
-    pattern Status500,
-    pattern Status501,
-    pattern Status502,
-    pattern Status503,
-    pattern Status504,
-    pattern Status505,
-    pattern Status511,
+    pattern StatusCode,
 #endif
     statusCode,
     statusMessage,
@@ -236,7 +139,7 @@ module Network.HTTP.Types.Status (
     statusIsServerError,
 ) where
 
-import Control.Monad (guard)
+import Control.Monad (guard, when)
 import Data.Bits ((.&.), (.|.))
 import Data.ByteString as B (ByteString, drop, empty, length, uncons)
 import qualified Data.ByteString.Char8 as B8
@@ -280,6 +183,23 @@ data Status = Status
         , -- | @since 0.12.4
           Generic
         )
+
+-- | If you only need to check whether the `statusCode` is a specific number,
+-- this pattern can make matching on it a bit easier:
+--
+-- @
+--   handleResponse :: Status -> IO ()
+--   handleResponse (StatusCode st) =
+--      case st of
+--          200 -> handleOK
+--          401 -> reportAuthFailure
+--          500 -> retry
+--          xxx -> abort xxx
+-- @
+--
+-- @since 0.12.7
+pattern StatusCode :: Int -> Status
+pattern StatusCode code <- Status code _
 
 -- | A t'Status' is equal to another t'Status' if the status codes are equal.
 instance Eq Status where
@@ -385,14 +305,6 @@ status101 = mkStatus 101 "Switching Protocols"
 switchingProtocols101 :: Status
 switchingProtocols101 = status101
 
--- | @since 0.13.0
-pattern Status100 :: Status
-pattern Status100 <- Status 100 _
-
--- | @since 0.13.0
-pattern Status101 :: Status
-pattern Status101 <- Status 101 _
-
 -- | OK 200
 status200 :: Status
 status200 = mkStatus 200 "OK"
@@ -468,34 +380,6 @@ status206 = mkStatus 206 "Partial Content"
 -- @since 0.5.1
 partialContent206 :: Status
 partialContent206 = status206
-
--- | @since 0.13.0
-pattern Status200 :: Status
-pattern Status200 <- Status 200 _
-
--- | @since 0.13.0
-pattern Status201 :: Status
-pattern Status201 <- Status 201 _
-
--- | @since 0.13.0
-pattern Status202 :: Status
-pattern Status202 <- Status 202 _
-
--- | @since 0.13.0
-pattern Status203 :: Status
-pattern Status203 <- Status 203 _
-
--- | @since 0.13.0
-pattern Status204 :: Status
-pattern Status204 <- Status 204 _
-
--- | @since 0.13.0
-pattern Status205 :: Status
-pattern Status205 <- Status 205 _
-
--- | @since 0.13.0
-pattern Status206 :: Status
-pattern Status206 <- Status 206 _
 
 -- | Multiple Choices 300
 status300 :: Status
@@ -576,39 +460,6 @@ status308 = mkStatus 308 "Permanent Redirect"
 -- @since 0.9
 permanentRedirect308 :: Status
 permanentRedirect308 = status308
-
-
--- | @since 0.13.0
-pattern Status300 :: Status
-pattern Status300 <- Status 300 _
-
--- | @since 0.13.0
-pattern Status301 :: Status
-pattern Status301 <- Status 301 _
-
--- | @since 0.13.0
-pattern Status302 :: Status
-pattern Status302 <- Status 302 _
-
--- | @since 0.13.0
-pattern Status303 :: Status
-pattern Status303 <- Status 303 _
-
--- | @since 0.13.0
-pattern Status304 :: Status
-pattern Status304 <- Status 304 _
-
--- | @since 0.13.0
-pattern Status305 :: Status
-pattern Status305 <- Status 305 _
-
--- | @since 0.13.0
-pattern Status307 :: Status
-pattern Status307 <- Status 307 _
-
--- | @since 0.13.0
-pattern Status308 :: Status
-pattern Status308 <- Status 308 _
 
 -- | Bad Request 400
 status400 :: Status
@@ -905,102 +756,6 @@ status451 = mkStatus 451 "Unavailable For Legal Reasons"
 unavailableForLegalReasons451 :: Status
 unavailableForLegalReasons451 = status451
 
--- | @since 0.13.0
-pattern Status400 :: Status
-pattern Status400 <- Status 400 _
-
--- | @since 0.13.0
-pattern Status401 :: Status
-pattern Status401 <- Status 401 _
-
--- | @since 0.13.0
-pattern Status402 :: Status
-pattern Status402 <- Status 402 _
-
--- | @since 0.13.0
-pattern Status403 :: Status
-pattern Status403 <- Status 403 _
-
--- | @since 0.13.0
-pattern Status404 :: Status
-pattern Status404 <- Status 404 _
-
--- | @since 0.13.0
-pattern Status405 :: Status
-pattern Status405 <- Status 405 _
-
--- | @since 0.13.0
-pattern Status407 :: Status
-pattern Status407 <- Status 407 _
-
--- | @since 0.13.0
-pattern Status408 :: Status
-pattern Status408 <- Status 408 _
-
--- | @since 0.13.0
-pattern Status409 :: Status
-pattern Status409 <- Status 409 _
-
--- | @since 0.13.0
-pattern Status410 :: Status
-pattern Status410 <- Status 410 _
-
--- | @since 0.13.0
-pattern Status411 :: Status
-pattern Status411 <- Status 411 _
-
--- | @since 0.13.0
-pattern Status412 :: Status
-pattern Status412 <- Status 412 _
-
--- | @since 0.13.0
-pattern Status413 :: Status
-pattern Status413 <- Status 413 _
-
--- | @since 0.13.0
-pattern Status414 :: Status
-pattern Status414 <- Status 414 _
-
--- | @since 0.13.0
-pattern Status415 :: Status
-pattern Status415 <- Status 415 _
-
--- | @since 0.13.0
-pattern Status416 :: Status
-pattern Status416 <- Status 416 _
-
--- | @since 0.13.0
-pattern Status417 :: Status
-pattern Status417 <- Status 417 _
-
--- | @since 0.13.0
-pattern Status418 :: Status
-pattern Status418 <- Status 418 _
-
--- | @since 0.13.0
-pattern Status422 :: Status
-pattern Status422 <- Status 422 _
-
--- | @since 0.13.0
-pattern Status426 :: Status
-pattern Status426 <- Status 426 _
-
--- | @since 0.13.0
-pattern Status428 :: Status
-pattern Status428 <- Status 428 _
-
--- | @since 0.13.0
-pattern Status429 :: Status
-pattern Status429 <- Status 429 _
-
--- | @since 0.13.0
-pattern Status431 :: Status
-pattern Status431 <- Status 431 _
-
--- | @since 0.13.0
-pattern Status451 :: Status
-pattern Status451 <- Status 451 _
-
 -- | Internal Server Error 500
 status500 :: Status
 status500 = mkStatus 500 "Internal Server Error"
@@ -1083,34 +838,6 @@ status511 = mkStatus 511 "Network Authentication Required"
 networkAuthenticationRequired511 :: Status
 networkAuthenticationRequired511 = status511
 
--- | @since 0.13.0
-pattern Status500 :: Status
-pattern Status500 <- Status 500 _
-
--- | @since 0.13.0
-pattern Status501 :: Status
-pattern Status501 <- Status 501 _
-
--- | @since 0.13.0
-pattern Status502 :: Status
-pattern Status502 <- Status 502 _
-
--- | @since 0.13.0
-pattern Status503 :: Status
-pattern Status503 <- Status 503 _
-
--- | @since 0.13.0
-pattern Status504 :: Status
-pattern Status504 <- Status 504 _
-
--- | @since 0.13.0
-pattern Status505 :: Status
-pattern Status505 <- Status 505 _
-
--- | @since 0.13.0
-pattern Status511 :: Status
-pattern Status511 <- Status 511 _
-
 -- | Informational class
 --
 -- Checks if the status is in the 1XX range.
@@ -1167,6 +894,7 @@ renderStatusCodeToPtr (Status code _) ptr = do
     (t, i) = rest `divMod` 10
     toByte :: Int -> Word8
     toByte x = fromIntegral x .|. 0x30
+{-# INLINABLE renderStatusCodeToPtr #-}
 
 -- | Render the 3 digit t'Status' code into a 'ByteString'.
 --
@@ -1177,7 +905,7 @@ renderStatusCode s@(Status code _)
     | otherwise =
         unsafeCreate 3 $ renderStatusCodeToPtr s
 
--- | Writes the full t'Status' code to the provided 'Ptr'.
+-- | Writes the full t'Status' code and message to the provided 'Ptr'.
 --
 -- /N.B. Same caveat from 'renderStatusCodeToPtr' applies./
 --
@@ -1185,9 +913,11 @@ renderStatusCode s@(Status code _)
 renderFullStatusToPtr :: Status -> Ptr Word8 -> IO ()
 renderFullStatusToPtr s@(Status _ (PS fptr offset len)) ptr = do
     renderStatusCodeToPtr s ptr
-    poke (ptr `plusPtr` 3) (0x20 :: Word8)
-    unsafeWithForeignPtr fptr $ \src ->
-        copyBytes (ptr `plusPtr` 4) (src `plusPtr` offset) len
+    poke (ptr `plusPtr` 3) (0x20 :: Word8) -- space
+    when (len > 0) $
+        unsafeWithForeignPtr fptr $ \src ->
+            copyBytes (ptr `plusPtr` 4) (src `plusPtr` offset) len
+{-# INLINABLE renderFullStatusToPtr #-}
 
 -- | Render the full t'Status' code with status message into a 'ByteString'.
 --

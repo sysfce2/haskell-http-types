@@ -14,8 +14,7 @@
   * `Http11`
   * `Http20`
   * `Http30`
-* Add pattern synonyms for `Status`
-  * all of format `StatusXXX`
+* Add pattern synonyms for `Status` as `StatusCode` to only match the 3 digit code
 * Add more constant headers:
   * `hAcceptPatch`
   * `hAccessControlAllowCredentials`
