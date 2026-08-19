@@ -18,7 +18,7 @@ on:
 jobs:
   cabal:
     env:
-      MANUAL_RESET: v4
+      MANUAL_RESET: v5
     name: cabal / ghc-${{matrix.ghc}} / ${{ matrix.os }}
     continue-on-error: ${{ matrix.ghc == '9.14.1'}}
     runs-on: ${{ matrix.os }}
@@ -47,6 +47,7 @@ jobs:
             ~/.ghcup/cache/*
             ~/.ghcup/config.yaml
             ~/.ghcup/ghc/${{ matrix.ghc }}
+            ~/.ghcup/cabal/**/cabal
           key: CI-ghcup-cabal-${{ env.MANUAL_RESET }}-${{ matrix.ghc }}
 
       - name: Setup Haskell
