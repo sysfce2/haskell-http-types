@@ -23,6 +23,7 @@ module Network.HTTP.Types.Header (
     hAcceptCharset,
     hAcceptEncoding,
     hAcceptLanguage,
+    hAcceptQuery,
     hAcceptRanges,
     hAge,
     hAllow,
@@ -141,6 +142,12 @@ hAcceptEncoding = "Accept-Encoding"
 -- @since 0.7.0
 hAcceptLanguage :: HeaderName
 hAcceptLanguage = "Accept-Language"
+
+-- | [Accept-Query](https://www.rfc-editor.org/rfc/rfc10008.html#section-3)
+--
+-- @since 0.13
+hAcceptQuery :: HeaderName
+hAcceptQuery = "Accept-Query"
 
 -- | [Accept-Ranges](https://www.rfc-editor.org/rfc/rfc9110.html#name-accept-ranges)
 --

@@ -15,6 +15,7 @@ module Network.HTTP.Types (
     methodConnect,
     methodOptions,
     methodPatch,
+    methodQuery,
     StdMethod (..),
 
     -- ** Parsing and redering methods
@@ -160,6 +161,7 @@ module Network.HTTP.Types (
     hAcceptCharset,
     hAcceptEncoding,
     hAcceptLanguage,
+    hAcceptQuery,
     hAcceptRanges,
     hAge,
     hAllow,
