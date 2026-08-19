@@ -5,7 +5,7 @@
 * Add support for the QUERY method and Accept-Query response field name from
   [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html).
 
-## 0.12.6 [unreleased]
+## 0.12.6 [2026-08-13]
 
 * Remove `array` dependency
 
