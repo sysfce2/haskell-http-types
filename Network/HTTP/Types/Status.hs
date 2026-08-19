@@ -1156,7 +1156,7 @@ statusIsServerError (Status{statusCode = code}) = code >= 500 && code < 600
 -- /N.B. This function assumes @statusCode < 1000@!/
 -- /If it is @>= 1000@, the first byte will not be a digit./
 --
--- @since 0.13.0
+-- @since 0.12.7
 renderStatusCodeToPtr :: Status -> Ptr Word8 -> IO ()
 renderStatusCodeToPtr (Status code _) ptr = do
     poke ptr $ toByte h
@@ -1170,7 +1170,7 @@ renderStatusCodeToPtr (Status code _) ptr = do
 
 -- | Render the 3 digit t'Status' code into a 'ByteString'.
 --
--- @since 0.13.0
+-- @since 0.12.7
 renderStatusCode :: Status -> ByteString
 renderStatusCode s@(Status code _)
     | code >= 1000 = B8.pack $ show s
@@ -1181,7 +1181,7 @@ renderStatusCode s@(Status code _)
 --
 -- /N.B. Same caveat from 'renderStatusCodeToPtr' applies./
 --
--- @since 0.13.0
+-- @since 0.12.7
 renderFullStatusToPtr :: Status -> Ptr Word8 -> IO ()
 renderFullStatusToPtr s@(Status _ (PS fptr offset len)) ptr = do
     renderStatusCodeToPtr s ptr
@@ -1191,7 +1191,7 @@ renderFullStatusToPtr s@(Status _ (PS fptr offset len)) ptr = do
 
 -- | Render the full t'Status' code with status message into a 'ByteString'.
 --
--- @since 0.13.0
+-- @since 0.12.7
 renderFullStatus :: Status -> ByteString
 renderFullStatus s@(Status code msg)
     | code >= 1000 =

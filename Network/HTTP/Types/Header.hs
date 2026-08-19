@@ -162,43 +162,43 @@ hAcceptEncoding = "Accept-Encoding"
 
 -- | [Access-Control-Allow-Credentials](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-origin-response-header)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hAccessControlAllowCredentials :: HeaderName
 hAccessControlAllowCredentials = "Access-Control-Allow-Credentials"
 
 -- | [Access-Control-Allow-Headers](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-headers-response-header)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hAccessControlAllowHeaders :: HeaderName
 hAccessControlAllowHeaders = "Access-Control-Allow-Headers"
 
 -- | [Access-Control-Allow-Methods](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-methods-response-header)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hAccessControlAllowMethods :: HeaderName
 hAccessControlAllowMethods = "Access-Control-Allow-Methods"
 
 -- | [Access-Control-Allow-Origin](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-origin-response-header)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hAccessControlAllowOrigin :: HeaderName
 hAccessControlAllowOrigin = "Access-Control-Allow-Origin"
 
 -- | [Access-Control-Expose-Headers](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-expose-headers-response-header)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hAccessControlExposeHeaders :: HeaderName
 hAccessControlExposeHeaders = "Access-Control-Expose-Headers"
 
 -- | [Access-Control-Max-Age](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-max-age-response-header)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hAccessControlMaxAge :: HeaderName
 hAccessControlMaxAge = "Access-Control-Max-Age"
 
 -- | [Access-Control-Request-Method](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-request-method-request-header)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hAccessControlRequestMethod :: HeaderName
 hAccessControlRequestMethod = "Access-Control-Request-Method"
 
@@ -480,13 +480,13 @@ hWarning = "Warning"
 
 -- | [Accept-Patch](https://www.rfc-editor.org/rfc/rfc5789.html#section-3.1)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hAcceptPatch :: HeaderName
 hAcceptPatch = "Accept-Patch"
 
 -- | [Alt-Svc](https://www.rfc-editor.org/rfc/rfc7838.html#section-3)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hAltSvc :: HeaderName
 hAltSvc = "Alt-Svc"
 
@@ -498,19 +498,19 @@ hContentDisposition = "Content-Disposition"
 
 -- | [Content-Digest](https://www.rfc-editor.org/rfc/rfc9530.html#section-2)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hContentDigest :: HeaderName
 hContentDigest = "Content-Digest"
 
 -- | [Content-Security-Policy](https://www.w3.org/TR/CSP3/#csp-header)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hContentSecurityPolicy :: HeaderName
 hContentSecurityPolicy = "Content-Security-Policy"
 
 -- | [Content-Security-Policy-Report-Only](https://www.w3.org/TR/CSP3/#cspro-header)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hContentSecurityPolicyReportOnly :: HeaderName
 hContentSecurityPolicyReportOnly = "Content-Security-Policy-Report-Only"
 
@@ -522,13 +522,13 @@ hCookie = "Cookie"
 
 -- | [Forwarded](https://www.rfc-editor.org/rfc/rfc7239.html)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hForwarded :: HeaderName
 hForwarded = "Forwarded"
 
 -- | [Link](https://www.rfc-editor.org/rfc/rfc8288.html#section-3)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hLink :: HeaderName
 hLink = "Link"
 
@@ -564,7 +564,7 @@ hSetCookie = "Set-Cookie"
 
 -- | [Strict-Transport-Security](https://www.rfc-editor.org/rfc/rfc6797.html#section-6.1)
 --
--- @since 0.13.0
+-- @since 0.12.7
 hStrictTransportSecurity :: HeaderName
 hStrictTransportSecurity = "Strict-Transport-Security"
 
