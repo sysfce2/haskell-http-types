@@ -9,7 +9,7 @@ import qualified Data.ByteString.Char8 as B8
 import Data.Function (on)
 import qualified Data.List as L
 import Test.Hspec
-import Test.QuickCheck (Arbitrary (..), choose, property, resize)
+import Test.QuickCheck (Arbitrary (..), choose, property, resize, (===))
 import Test.QuickCheck.Instances ()
 
 import Network.HTTP.Types
@@ -67,60 +67,10 @@ spec = do
             -- it's about the status code here.
             parseStatusCode (renderStatusCode notFound404) `shouldBe` Just (404, "")
     describe "Patterns" $ do
-        patternMatch status100 (\Status100 -> pure ())
-        patternMatch status101 (\Status101 -> pure ())
-        patternMatch status200 (\Status200 -> pure ())
-        patternMatch status201 (\Status201 -> pure ())
-        patternMatch status202 (\Status202 -> pure ())
-        patternMatch status203 (\Status203 -> pure ())
-        patternMatch status204 (\Status204 -> pure ())
-        patternMatch status205 (\Status205 -> pure ())
-        patternMatch status206 (\Status206 -> pure ())
-        patternMatch status300 (\Status300 -> pure ())
-        patternMatch status301 (\Status301 -> pure ())
-        patternMatch status302 (\Status302 -> pure ())
-        patternMatch status303 (\Status303 -> pure ())
-        patternMatch status304 (\Status304 -> pure ())
-        patternMatch status305 (\Status305 -> pure ())
-        patternMatch status307 (\Status307 -> pure ())
-        patternMatch status308 (\Status308 -> pure ())
-        patternMatch status400 (\Status400 -> pure ())
-        patternMatch status401 (\Status401 -> pure ())
-        patternMatch status402 (\Status402 -> pure ())
-        patternMatch status403 (\Status403 -> pure ())
-        patternMatch status404 (\Status404 -> pure ())
-        patternMatch status405 (\Status405 -> pure ())
-        patternMatch status407 (\Status407 -> pure ())
-        patternMatch status408 (\Status408 -> pure ())
-        patternMatch status409 (\Status409 -> pure ())
-        patternMatch status410 (\Status410 -> pure ())
-        patternMatch status411 (\Status411 -> pure ())
-        patternMatch status412 (\Status412 -> pure ())
-        patternMatch status413 (\Status413 -> pure ())
-        patternMatch status414 (\Status414 -> pure ())
-        patternMatch status415 (\Status415 -> pure ())
-        patternMatch status416 (\Status416 -> pure ())
-        patternMatch status417 (\Status417 -> pure ())
-        patternMatch status418 (\Status418 -> pure ())
-        patternMatch status422 (\Status422 -> pure ())
-        patternMatch status426 (\Status426 -> pure ())
-        patternMatch status428 (\Status428 -> pure ())
-        patternMatch status429 (\Status429 -> pure ())
-        patternMatch status431 (\Status431 -> pure ())
-        patternMatch status451 (\Status451 -> pure ())
-        patternMatch status500 (\Status500 -> pure ())
-        patternMatch status501 (\Status501 -> pure ())
-        patternMatch status502 (\Status502 -> pure ())
-        patternMatch status503 (\Status503 -> pure ())
-        patternMatch status504 (\Status504 -> pure ())
-        patternMatch status505 (\Status505 -> pure ())
-        patternMatch status511 (\Status511 -> pure ())
-
-patternMatch :: Status -> (Status -> IO ()) -> SpecWith ()
-patternMatch s f =
-    it name $ f s `shouldReturn` ()
-  where
-    name = "match the status " <> show (statusCode s)
+        it "matches on StatusCode" $
+            property $ \st ->
+                case st of
+                    StatusCode code -> code === statusCode st
 
 categoryCheck :: String -> (Status -> Bool) -> [StatusTuple] -> Spec
 categoryCheck name p shoulds = do

@@ -200,6 +200,7 @@ data Status = Status
 -- @since 0.12.7
 pattern StatusCode :: Int -> Status
 pattern StatusCode code <- Status code _
+{-# COMPLETE StatusCode #-}
 
 -- | A t'Status' is equal to another t'Status' if the status codes are equal.
 instance Eq Status where
