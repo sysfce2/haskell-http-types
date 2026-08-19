@@ -2,7 +2,6 @@ module Network.HTTP.Types (
     -- * Methods
 
     -- | __For more information__: "Network.HTTP.Types.Method"
-
     Method,
 
     -- ** Constants
@@ -26,7 +25,6 @@ module Network.HTTP.Types (
     -- * Versions
 
     -- | __For more information__: "Network.HTTP.Types.Version"
-
     HttpVersion (..),
     http09,
     http10,
@@ -37,11 +35,20 @@ module Network.HTTP.Types (
     -- * Status
 
     -- | __For more information__: "Network.HTTP.Types.Status"
-
     Status (..),
+    mkStatus,
+
+    -- ** Parsing and Rendering
+    parseStatusCode,
+    renderStatusCode,
+    parseFullStatus,
+    renderFullStatus,
+
+    -- ** Low level functions
+    renderStatusCodeToPtr,
+    renderFullStatusToPtr,
 
     -- ** Constants
-    mkStatus,
     status100,
     continue100,
     status101,
@@ -140,6 +147,8 @@ module Network.HTTP.Types (
     httpVersionNotSupported505,
     status511,
     networkAuthenticationRequired511,
+
+    -- *** Category checks
     statusIsInformational,
     statusIsSuccessful,
     statusIsRedirection,
@@ -156,18 +165,28 @@ module Network.HTTP.Types (
     RequestHeaders,
     ResponseHeaders,
 
-    -- ** Header constants
+    -- ** Constants
     hAccept,
     hAcceptCharset,
     hAcceptEncoding,
     hAcceptLanguage,
+    hAcceptPatch,
     hAcceptQuery,
     hAcceptRanges,
+    hAccessControlAllowCredentials,
+    hAccessControlAllowHeaders,
+    hAccessControlAllowMethods,
+    hAccessControlAllowOrigin,
+    hAccessControlExposeHeaders,
+    hAccessControlMaxAge,
+    hAccessControlRequestMethod,
     hAge,
     hAllow,
+    hAltSvc,
     hAuthorization,
     hCacheControl,
     hConnection,
+    hContentDigest,
     hContentDisposition,
     hContentEncoding,
     hContentLanguage,
@@ -175,12 +194,15 @@ module Network.HTTP.Types (
     hContentLocation,
     hContentMD5,
     hContentRange,
+    hContentSecurityPolicy,
+    hContentSecurityPolicyReportOnly,
     hContentType,
     hCookie,
     hDate,
     hETag,
     hExpect,
     hExpires,
+    hForwarded,
     hFrom,
     hHost,
     hIfMatch,
@@ -189,6 +211,7 @@ module Network.HTTP.Types (
     hIfRange,
     hIfUnmodifiedSince,
     hLastModified,
+    hLink,
     hLocation,
     hMaxForwards,
     hMIMEVersion,
@@ -203,6 +226,7 @@ module Network.HTTP.Types (
     hRetryAfter,
     hServer,
     hSetCookie,
+    hStrictTransportSecurity,
     hTE,
     hTrailer,
     hTransferEncoding,

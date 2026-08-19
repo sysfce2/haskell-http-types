@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Network.HTTP.Types.StatusSpec (main, spec) where
@@ -8,7 +9,7 @@ import qualified Data.ByteString.Char8 as B8
 import Data.Function (on)
 import qualified Data.List as L
 import Test.Hspec
-import Test.QuickCheck (Arbitrary (..), choose, property, resize)
+import Test.QuickCheck (Arbitrary (..), choose, property, resize, (===))
 import Test.QuickCheck.Instances ()
 
 import Network.HTTP.Types
@@ -34,6 +35,42 @@ spec = do
         it "only orders on 'statusCode'" $
             property $
                 \st1 st2 -> (st1 < st2) == ((<) `on` statusCode) st1 st2
+    describe "Render functions" $ do
+        it "renders the code" $ do
+            renderStatusCode notFound404 `shouldBe` "404"
+            renderStatusCode continue100 `shouldBe` "100"
+            renderStatusCode (mkStatus 12 "") `shouldBe` "012"
+            renderStatusCode (mkStatus 987 "") `shouldBe` "987"
+        it "renders the message" $ do
+            renderFullStatus notFound404 `shouldBe` "404 Not Found"
+            renderFullStatus continue100 `shouldBe` "100 Continue"
+            renderFullStatus (mkStatus 12 "Short") `shouldBe` "012 Short"
+            renderFullStatus (mkStatus 987 "Pretty Long If I May Say So Myself")
+                `shouldBe` "987 Pretty Long If I May Say So Myself"
+    describe "Parsing functions" $ do
+        it "parses the code" $ do
+            parseStatusCode "307" `shouldBe` Just (307, "")
+            parseStatusCode "404 Not Found" `shouldBe` Just (404, " Not Found")
+            parseStatusCode "1337 Works Still" `shouldBe` Just (133, "7 Works Still")
+            parseStatusCode "No Digits" `shouldBe` Nothing
+            parseStatusCode "12 Is Not Enough" `shouldBe` Nothing
+        it "parses the message" $ do
+            parseFullStatus "307" `shouldBe` Just (mkStatus 307 "")
+            parseFullStatus "404 Not Found" `shouldBe` Just (mkStatus 404 "Not Found")
+            parseFullStatus "500 Someone Forgot To\r\nBreak At The Newline"
+                `shouldBe` Just (mkStatus 500 "Someone Forgot To\r\nBreak At The Newline")
+            parseFullStatus "1337 Works Still" `shouldBe` Nothing
+            parseFullStatus "No Digits" `shouldBe` Nothing
+        it "round trips" $ do
+            parseFullStatus (renderFullStatus notFound404) `shouldBe` Just notFound404
+            -- I know this is under "round trips" and loses the message, but
+            -- it's about the status code here.
+            parseStatusCode (renderStatusCode notFound404) `shouldBe` Just (404, "")
+    describe "Patterns" $ do
+        it "matches on StatusCode" $
+            property $ \st ->
+                case st of
+                    StatusCode code -> code === statusCode st
 
 categoryCheck :: String -> (Status -> Bool) -> [StatusTuple] -> Spec
 categoryCheck name p shoulds = do

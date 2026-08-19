@@ -1,13 +1,13 @@
-Cabal-version:       2.2
+Cabal-version:       1.22
 Name:                http-types
-Version:             0.12.6
+Version:             0.12.7
 Synopsis:            Generic HTTP types for Haskell (for both client and server code).
 Description:         Types and functions to describe and handle HTTP concepts.
                      Including "methods", "headers", "query strings", "paths" and "HTTP versions".
 Homepage:            https://github.com/Vlix/http-types
 License:             BSD-3-Clause
 License-file:        LICENSE
-Author:              Aristid Breitkreuz, Michael Snoyman
+Author:              Felix Paulusma, Aristid Breitkreuz, Michael Snoyman
 Maintainer:          felix.paulusma@gmail.com
 Copyright:           (C) 2011 Aristid Breitkreuz, (C) 2023 Felix Paulusma
 Category:            Network, Web
@@ -24,7 +24,7 @@ Extra-doc-files:
 Source-repository this
   type: git
   location: https://github.com/Vlix/http-types.git
-  tag: v0.12.6
+  tag: v0.13.0
 
 Source-repository head
   type: git

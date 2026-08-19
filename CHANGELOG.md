@@ -5,6 +5,33 @@
 * Add support for the QUERY method and Accept-Query response field name from
   [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html).
 
+## 0.12.7 [unreleased]
+
+* Add parsing and rendering functions for `Status`
+* Add pattern synonyms for `HttpVersion`
+  * `Http09`
+  * `Http10`
+  * `Http11`
+  * `Http20`
+  * `Http30`
+* Add pattern synonyms for `Status` as `StatusCode` to only match the 3 digit code
+* Add more constant headers:
+  * `hAcceptPatch`
+  * `hAccessControlAllowCredentials`
+  * `hAccessControlAllowHeaders`
+  * `hAccessControlAllowMethods`
+  * `hAccessControlAllowOrigin`
+  * `hAccessControlExposeHeaders`
+  * `hAccessControlMaxAge`
+  * `hAccessControlRequestMethod`
+  * `hAltSvc`
+  * `hContentDigest`
+  * `hContentSecurityPolicy`
+  * `hContentSecurityPolicyReportOnly`
+  * `hForwarded`
+  * `hLink`
+  * `hStrictTransportSecurity`
+
 ## 0.12.6 [2026-08-13]
 
 * Remove `array` dependency

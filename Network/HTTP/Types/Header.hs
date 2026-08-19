@@ -23,13 +23,23 @@ module Network.HTTP.Types.Header (
     hAcceptCharset,
     hAcceptEncoding,
     hAcceptLanguage,
+    hAcceptPatch,
     hAcceptQuery,
     hAcceptRanges,
+    hAccessControlAllowCredentials,
+    hAccessControlAllowHeaders,
+    hAccessControlAllowMethods,
+    hAccessControlAllowOrigin,
+    hAccessControlExposeHeaders,
+    hAccessControlMaxAge,
+    hAccessControlRequestMethod,
     hAge,
     hAllow,
+    hAltSvc,
     hAuthorization,
     hCacheControl,
     hConnection,
+    hContentDigest,
     hContentDisposition,
     hContentEncoding,
     hContentLanguage,
@@ -37,12 +47,15 @@ module Network.HTTP.Types.Header (
     hContentLocation,
     hContentMD5,
     hContentRange,
+    hContentSecurityPolicy,
+    hContentSecurityPolicyReportOnly,
     hContentType,
     hCookie,
     hDate,
     hETag,
     hExpect,
     hExpires,
+    hForwarded,
     hFrom,
     hHost,
     hIfMatch,
@@ -51,6 +64,7 @@ module Network.HTTP.Types.Header (
     hIfRange,
     hIfUnmodifiedSince,
     hLastModified,
+    hLink,
     hLocation,
     hMaxForwards,
     hMIMEVersion,
@@ -65,6 +79,7 @@ module Network.HTTP.Types.Header (
     hRetryAfter,
     hServer,
     hSetCookie,
+    hStrictTransportSecurity,
     hTE,
     hTrailer,
     hTransferEncoding,
@@ -90,13 +105,21 @@ module Network.HTTP.Types.Header (
 )
 where
 
+import Control.Monad (guard)
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Builder as B
+import qualified Data.ByteString.Builder as B (
+    Builder,
+    byteString,
+    integerDec,
+    toLazyByteString,
+    word8,
+ )
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.CaseInsensitive as CI
 import Data.Data (Data)
 import Data.List (intersperse)
+import Data.Word (Word8)
 import GHC.Generics (Generic)
 
 -- | A full HTTP header field with the name and value separated.
@@ -136,6 +159,48 @@ hAcceptCharset = "Accept-Charset"
 -- @since 0.9
 hAcceptEncoding :: HeaderName
 hAcceptEncoding = "Accept-Encoding"
+
+-- | [Access-Control-Allow-Credentials](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-origin-response-header)
+--
+-- @since 0.12.7
+hAccessControlAllowCredentials :: HeaderName
+hAccessControlAllowCredentials = "Access-Control-Allow-Credentials"
+
+-- | [Access-Control-Allow-Headers](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-headers-response-header)
+--
+-- @since 0.12.7
+hAccessControlAllowHeaders :: HeaderName
+hAccessControlAllowHeaders = "Access-Control-Allow-Headers"
+
+-- | [Access-Control-Allow-Methods](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-methods-response-header)
+--
+-- @since 0.12.7
+hAccessControlAllowMethods :: HeaderName
+hAccessControlAllowMethods = "Access-Control-Allow-Methods"
+
+-- | [Access-Control-Allow-Origin](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-allow-origin-response-header)
+--
+-- @since 0.12.7
+hAccessControlAllowOrigin :: HeaderName
+hAccessControlAllowOrigin = "Access-Control-Allow-Origin"
+
+-- | [Access-Control-Expose-Headers](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-expose-headers-response-header)
+--
+-- @since 0.12.7
+hAccessControlExposeHeaders :: HeaderName
+hAccessControlExposeHeaders = "Access-Control-Expose-Headers"
+
+-- | [Access-Control-Max-Age](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-max-age-response-header)
+--
+-- @since 0.12.7
+hAccessControlMaxAge :: HeaderName
+hAccessControlMaxAge = "Access-Control-Max-Age"
+
+-- | [Access-Control-Request-Method](https://www.w3.org/TR/2014/REC-cors-20140116/#access-control-request-method-request-header)
+--
+-- @since 0.12.7
+hAccessControlRequestMethod :: HeaderName
+hAccessControlRequestMethod = "Access-Control-Request-Method"
 
 -- | [Accept-Language](https://www.rfc-editor.org/rfc/rfc9110.html#name-accept-language)
 --
@@ -413,17 +478,41 @@ hWWWAuthenticate = "WWW-Authenticate"
 hWarning :: HeaderName
 hWarning = "Warning"
 
+-- | [Accept-Patch](https://www.rfc-editor.org/rfc/rfc5789.html#section-3.1)
+--
+-- @since 0.12.7
+hAcceptPatch :: HeaderName
+hAcceptPatch = "Accept-Patch"
+
+-- | [Alt-Svc](https://www.rfc-editor.org/rfc/rfc7838.html#section-3)
+--
+-- @since 0.12.7
+hAltSvc :: HeaderName
+hAltSvc = "Alt-Svc"
+
 -- | [Content-Disposition](https://www.rfc-editor.org/rfc/rfc6266.html)
 --
 -- @since 0.10
 hContentDisposition :: HeaderName
 hContentDisposition = "Content-Disposition"
 
--- | [MIME-Version](https://www.rfc-editor.org/rfc/rfc2616.html#section-19.4.1)
+-- | [Content-Digest](https://www.rfc-editor.org/rfc/rfc9530.html#section-2)
 --
--- @since 0.10
-hMIMEVersion :: HeaderName
-hMIMEVersion = "MIME-Version"
+-- @since 0.12.7
+hContentDigest :: HeaderName
+hContentDigest = "Content-Digest"
+
+-- | [Content-Security-Policy](https://www.w3.org/TR/CSP3/#csp-header)
+--
+-- @since 0.12.7
+hContentSecurityPolicy :: HeaderName
+hContentSecurityPolicy = "Content-Security-Policy"
+
+-- | [Content-Security-Policy-Report-Only](https://www.w3.org/TR/CSP3/#cspro-header)
+--
+-- @since 0.12.7
+hContentSecurityPolicyReportOnly :: HeaderName
+hContentSecurityPolicyReportOnly = "Content-Security-Policy-Report-Only"
 
 -- | [Cookie](https://www.rfc-editor.org/rfc/rfc6265.html#section-4.2)
 --
@@ -431,11 +520,23 @@ hMIMEVersion = "MIME-Version"
 hCookie :: HeaderName
 hCookie = "Cookie"
 
--- | [Set-Cookie](https://www.rfc-editor.org/rfc/rfc6265.html#section-4.1)
+-- | [Forwarded](https://www.rfc-editor.org/rfc/rfc7239.html)
+--
+-- @since 0.12.7
+hForwarded :: HeaderName
+hForwarded = "Forwarded"
+
+-- | [Link](https://www.rfc-editor.org/rfc/rfc8288.html#section-3)
+--
+-- @since 0.12.7
+hLink :: HeaderName
+hLink = "Link"
+
+-- | [MIME-Version](https://www.rfc-editor.org/rfc/rfc2616.html#section-19.4.1)
 --
 -- @since 0.10
-hSetCookie :: HeaderName
-hSetCookie = "Set-Cookie"
+hMIMEVersion :: HeaderName
+hMIMEVersion = "MIME-Version"
 
 -- | [Origin](https://www.rfc-editor.org/rfc/rfc6454.html#section-7)
 --
@@ -454,6 +555,18 @@ hPrefer = "Prefer"
 -- @since 0.12.2
 hPreferenceApplied :: HeaderName
 hPreferenceApplied = "Preference-Applied"
+
+-- | [Set-Cookie](https://www.rfc-editor.org/rfc/rfc6265.html#section-4.1)
+--
+-- @since 0.10
+hSetCookie :: HeaderName
+hSetCookie = "Set-Cookie"
+
+-- | [Strict-Transport-Security](https://www.rfc-editor.org/rfc/rfc6797.html#section-6.1)
+--
+-- @since 0.12.7
+hStrictTransportSecurity :: HeaderName
+hStrictTransportSecurity = "Strict-Transport-Security"
 
 -- | An individual byte range. Used in @Range@ request headers.
 -- This type and its accompanying functions are /NOT/ compatible with the
@@ -483,9 +596,9 @@ data ByteRange
 --
 -- @since 0.6.11
 renderByteRangeBuilder :: ByteRange -> B.Builder
-renderByteRangeBuilder (ByteRangeFrom from) = B.integerDec from `mappend` B.char7 '-'
-renderByteRangeBuilder (ByteRangeFromTo from to) = B.integerDec from `mappend` B.char7 '-' `mappend` B.integerDec to
-renderByteRangeBuilder (ByteRangeSuffix suffix) = B.char7 '-' `mappend` B.integerDec suffix
+renderByteRangeBuilder (ByteRangeFrom from) = B.integerDec from `mappend` B.word8 _hyphen
+renderByteRangeBuilder (ByteRangeFromTo from to) = B.integerDec from `mappend` B.word8 _hyphen `mappend` B.integerDec to
+renderByteRangeBuilder (ByteRangeSuffix suffix) = B.word8 _hyphen `mappend` B.integerDec suffix
 
 -- | Renders a byte range into a 'B.ByteString'.
 --
@@ -507,7 +620,7 @@ type ByteRanges = [ByteRange]
 renderByteRangesBuilder :: ByteRanges -> B.Builder
 renderByteRangesBuilder xs =
     B.byteString "bytes="
-        `mappend` mconcat (intersperse (B.char7 ',') $ map renderByteRangeBuilder xs)
+        `mappend` mconcat (intersperse (B.word8 _comma) $ map renderByteRangeBuilder xs)
 
 -- | Renders a list of byte ranges into a 'B.ByteString'.
 --
@@ -540,33 +653,35 @@ renderByteRanges = BL.toStrict . B.toLazyByteString . renderByteRangesBuilder
 -- @since 0.9.1
 parseByteRanges :: B.ByteString -> Maybe ByteRanges
 parseByteRanges bs1 = do
-    bs2 <- stripPrefixB "bytes=" bs1
-    (r, bs3) <- range bs2
-    ranges (r :) bs3
+    (r, bs2) <- stripBytes >>= range
+    ranges (r :) bs2
   where
+    stripBytes = do
+        let prefix = "bytes="
+            prefixLen = B.length prefix
+            (pre, post) = B.splitAt prefixLen bs1
+        guard $ pre == prefix
+        Just post
     range bs2 = do
         (i, bs3) <- B8.readInteger bs2
         if i < 0 -- has prefix "-" ("-0" is not valid, but here treated as "0-")
             then Just (ByteRangeSuffix (negate i), bs3)
             else do
-                bs4 <- stripPrefixB "-" bs3
+                bs4 <- pop _hyphen bs3
                 case B8.readInteger bs4 of
                     Just (j, bs5) | j >= i -> Just (ByteRangeFromTo i j, bs5)
                     _ -> Just (ByteRangeFrom i, bs4)
     ranges front bs3
         | B.null bs3 = Just (front [])
         | otherwise = do
-            bs4 <- stripPrefixB "," bs3
+            bs4 <- pop _comma bs3
             (r, bs5) <- range bs4
             ranges (front . (r :)) bs5
+    pop w8 bs = do
+        (b, rest) <- B.uncons bs
+        guard $ b == w8
+        Just rest
 
-stripPrefixB :: B.ByteString -> B.ByteString -> Maybe B.ByteString
-#if !MIN_VERSION_bytestring(0,10,8)
--- FIXME: Use 'stripPrefix' from the 'bytestring' package.
--- Might have to update the dependency constraints though.
-stripPrefixB x y
-    | x `B.isPrefixOf` y = Just (B.drop (B.length x) y)
-    | otherwise = Nothing
-#else
-stripPrefixB = B.stripPrefix
-#endif
+_comma, _hyphen :: Word8
+_comma = 0x2C
+_hyphen = 0x2D

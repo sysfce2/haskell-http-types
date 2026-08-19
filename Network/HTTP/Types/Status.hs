@@ -1,22 +1,35 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 -- | Types and constants to describe HTTP status codes.
 --
--- At the bottom are some functions to check if a given 'Status' is from a certain category. (i.e. @1XX@, @2XX@, etc.)
+-- At the bottom are some functions to check if a given t'Status' is from a certain category. (i.e. @1XX@, @2XX@, etc.)
 module Network.HTTP.Types.Status (
     -- * HTTP Status
-
-    -- If we ever want to deprecate the 'Status' data constructor:
-    -- #if __GLASGOW_HASKELL__ >= 908
-    --   {-# DEPRECATED "Use 'mkStatus' when constructing a 'Status'" #-} Status(Status)
-    -- #else
-    Status (Status),
-    -- #endif
+#if __GLASGOW_HASKELL__ >= 800
+    Status (Status, StatusCode),
+#else
+    Status(Status),
+    pattern StatusCode,
+#endif
     statusCode,
     statusMessage,
     mkStatus,
+
+    -- ** Parsing and Rendering
+
+    -- | These functions are quicker and more efficient than doing it yourself.
+    parseStatusCode,
+    renderStatusCode,
+    parseFullStatus,
+    renderFullStatus,
+
+    -- ** Low level functions
+    renderStatusCodeToPtr,
+    renderFullStatusToPtr,
 
     -- * Common statuses
     status100,
@@ -126,8 +139,23 @@ module Network.HTTP.Types.Status (
     statusIsServerError,
 ) where
 
-import Data.ByteString as B (ByteString, empty)
+import Control.Monad (guard, when)
+import Data.Bits ((.&.), (.|.))
+import Data.ByteString as B (ByteString, drop, empty, length, uncons)
+import qualified Data.ByteString.Char8 as B8
+import Data.ByteString.Internal as B (
+    ByteString (..),
+    accursedUnutterablePerformIO,
+    unsafeCreate,
+ )
 import Data.Data (Data)
+import Data.Function (on)
+import Foreign (Ptr, Word8, copyBytes, peek, plusPtr, poke)
+#if !MIN_VERSION_base(4,15,0)
+import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
+#else
+import GHC.ForeignPtr (unsafeWithForeignPtr)
+#endif
 import GHC.Generics (Generic)
 
 -- | HTTP Status.
@@ -140,11 +168,11 @@ import GHC.Generics (Generic)
 -- Note that the 'Show' instance is only for debugging.
 data Status = Status
     { statusCode :: Int
-    -- ^ The 3-digit code of a 'Status'
+    -- ^ The 3-digit code of a t'Status'
     --
     -- For example: "200" in a @200 OK@ status
     , statusMessage :: B.ByteString
-    -- ^ The textual message of a 'Status'
+    -- ^ The textual message of a t'Status'
     --
     -- For example: "Not Found" in a @404 Not Found@ status
     }
@@ -156,26 +184,36 @@ data Status = Status
           Generic
         )
 
--- FIXME: If the data constructor of 'Status' is ever deprecated, we should define
--- a pattern synonym to minimize any breakage. This also involves changing the
--- name of the constructor, so that it doesn't clash with the new pattern synonym
--- that's replacing it.
+-- | If you only need to check whether the `statusCode` is a specific number,
+-- this pattern can make matching on it a bit easier:
 --
--- > data Status = MkStatus ...
--- > pattern Status code msg = MkStatus code msg
+-- @
+--   handleResponse :: Status -> IO ()
+--   handleResponse (StatusCode st) =
+--      case st of
+--          200 -> handleOK
+--          401 -> reportAuthFailure
+--          500 -> retry
+--          xxx -> abort xxx
+-- @
+--
+-- @since 0.12.7
+pattern StatusCode :: Int -> Status
+pattern StatusCode code <- Status code _
+{-# COMPLETE StatusCode #-}
 
--- | A 'Status' is equal to another 'Status' if the status codes are equal.
+-- | A t'Status' is equal to another t'Status' if the status codes are equal.
 instance Eq Status where
-    Status{statusCode = a} == Status{statusCode = b} = a == b
+    (==) = (==) `on` statusCode
 
--- | 'Status'es are ordered according to their status codes only.
+-- | t'Status'es are ordered according to their status codes only.
 instance Ord Status where
-    compare Status{statusCode = a} Status{statusCode = b} = a `compare` b
+    compare = compare `on` statusCode
 
--- | Be advised, that when using the \"enumFrom*\" family of methods or
+-- | Be advised, that when using the @enumFrom*@ family of methods or
 -- ranges in lists, it will generate all possible status codes.
 --
--- E.g. @[status100 .. status200]@ generates 'Status'es of @100, 101, 102 .. 198, 199, 200@
+-- E.g. @[status100 .. status200]@ generates t'Status'es of @100, 101, 102 .. 198, 199, 200@
 --
 -- The statuses not included in this library will have an empty message.
 --
@@ -238,7 +276,7 @@ instance Bounded Status where
     minBound = status100
     maxBound = status511
 
--- | Create a 'Status' from a status code and message.
+-- | Create a t'Status' from a status code and message.
 --
 -- @since 0.7.3
 mkStatus :: Int -> B.ByteString -> Status
@@ -840,3 +878,135 @@ statusIsClientError (Status{statusCode = code}) = code >= 400 && code < 500
 -- @since 0.8.0
 statusIsServerError :: Status -> Bool
 statusIsServerError (Status{statusCode = code}) = code >= 500 && code < 600
+
+-- | Write the 3 digit t'Status' code to the provided 'Ptr'.
+--
+-- /N.B. This function assumes @statusCode < 1000@!/
+-- /If it is @>= 1000@, the first byte will not be a digit./
+--
+-- @since 0.12.7
+renderStatusCodeToPtr :: Status -> Ptr Word8 -> IO ()
+renderStatusCodeToPtr (Status code _) ptr = do
+    poke ptr $ toByte h
+    poke (ptr `plusPtr` 1) $ toByte t
+    poke (ptr `plusPtr` 2) $ toByte i
+  where
+    (h, rest) = code `divMod` 100
+    (t, i) = rest `divMod` 10
+    toByte :: Int -> Word8
+    toByte x = fromIntegral x .|. 0x30
+{-# INLINABLE renderStatusCodeToPtr #-}
+
+-- | Render the 3 digit t'Status' code into a 'ByteString'.
+--
+-- @since 0.12.7
+renderStatusCode :: Status -> ByteString
+renderStatusCode s@(Status code _)
+    | code >= 1000 = B8.pack $ show s
+    | otherwise =
+        unsafeCreate 3 $ renderStatusCodeToPtr s
+
+-- | Writes the full t'Status' code and message to the provided 'Ptr'.
+--
+-- /N.B. Same caveat from 'renderStatusCodeToPtr' applies./
+--
+-- @since 0.12.7
+renderFullStatusToPtr :: Status -> Ptr Word8 -> IO ()
+renderFullStatusToPtr s@(Status _ (PS fptr offset len)) ptr = do
+    renderStatusCodeToPtr s ptr
+    poke (ptr `plusPtr` 3) (0x20 :: Word8) -- space
+    when (len > 0) $
+        unsafeWithForeignPtr fptr $ \src ->
+            copyBytes (ptr `plusPtr` 4) (src `plusPtr` offset) len
+{-# INLINABLE renderFullStatusToPtr #-}
+
+-- | Render the full t'Status' code with status message into a 'ByteString'.
+--
+-- @since 0.12.7
+renderFullStatus :: Status -> ByteString
+renderFullStatus s@(Status code msg)
+    | code >= 1000 =
+        B8.pack (show code) `mappend` " " `mappend` msg
+    | otherwise =
+        unsafeCreate (4 + len) $ renderFullStatusToPtr s
+  where
+    len = B.length msg
+
+-- | Parses the first three characters as digits and converts them to an 'Int'.
+--
+-- If the first 3 characters are not digits (i.e. @0-9@), or the 'ByteString'
+-- is less than 3 bytes long, the result will be 'Nothing'.
+--
+-- When successful, it will return the parsed status code and the remainder of
+-- the 'ByteString'.
+--
+-- >>> parseStatusCode "307"
+-- Just (307,"")
+--
+-- >>> parseStatusCode "404 Not Found"
+-- Just (404," Not Found")
+--
+-- >>> parseStatusCode "No Digits"
+-- Nothing
+--
+-- >>> parseStatusCode "12 Is Not Enough Digits"
+-- Nothing
+parseStatusCode :: ByteString -> Maybe (Int, ByteString)
+parseStatusCode bs@(PS fptr offset len)
+    | len < 3 = Nothing
+    | otherwise =
+        accursedUnutterablePerformIO $
+            unsafeWithForeignPtr fptr $ \ptr' -> do
+                let ptr = ptr' `plusPtr` offset
+                w1 <- peek ptr
+                w2 <- peek (ptr `plusPtr` 1)
+                w3 <- peek (ptr `plusPtr` 2)
+                pure $ do
+                    h <- toNumber w1
+                    t <- toNumber w2
+                    i <- toNumber w3
+                    Just (h * 100 + t * 10 + i, B.drop 3 bs)
+  where
+    toNumber :: Word8 -> Maybe Int
+    toNumber w = do
+        guard $ 0x30 <= w && w <= 0x39
+        Just . fromIntegral $ w .&. 0x0F
+
+-- | Assumes the provided 'ByteString' is either:
+--
+--   * only 3 digits, or
+--   * 3 digits, a space, and the rest of the status message
+--
+-- /N.B. this function does not check for newlines, it puts everything/
+-- /after the code and space into the 'statusMessage'./
+--
+-- >>> parseFullStatus "307"
+-- Just (Status {statusCode = 307, statusMessage = ""})
+--
+-- >>> parseFullStatus "404 Not Found"
+-- Just (Status {statusCode = 404, statusMessage = "Not Found"})
+--
+-- >>> parseFullStatus "500 Someone Forgot To\r\nBreak At The Newline"
+-- Just (Status {statusCode = 500, statusMessage = "Someone Forgot To\r\nBreak At The Newline"})
+--
+-- >>> parseFullStatus "1337 Is A Bad Status Code"
+-- Nothing
+--
+-- >>> parseFullStatus "101Still Needs A Space"
+-- Nothing
+--
+-- >>> parseFullStatus "No Digits"
+-- Nothing
+parseFullStatus :: ByteString -> Maybe Status
+parseFullStatus bs = do
+    (code, rest) <- parseStatusCode bs
+    case B.uncons rest of
+        Nothing -> Just $ mkStatus code ""
+        Just (w, ws)
+            | w == 0x20 -> Just $ mkStatus code ws
+            | otherwise -> Nothing
+
+#if !MIN_VERSION_base(4,15,0)
+unsafeWithForeignPtr :: ForeignPtr a -> (Ptr a -> IO b) -> IO b
+unsafeWithForeignPtr = withForeignPtr
+#endif
